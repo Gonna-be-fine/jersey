@@ -4,6 +4,23 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { DecalManager } from "./decal";
 
+const ClothkeyMap = {
+  '领座': 'Pattern2D_2361708',
+  '领面': 'Pattern2D_70819',
+  '前主外布': 'Pattern2D_486144',
+  '后主外布': 'Pattern2D_483306',
+  '前下外布': 'Pattern2D_486129',
+  '后下外布': 'Pattern2D_483920',
+  '左袖领': 'Pattern2D_484659',
+  '右袖领': 'Pattern2D_485516',
+  '左外袖': 'Pattern2D_484674',
+  '右外袖': 'Pattern2D_485220',
+  '前主里布': 'Pattern2D_486144_1',
+  '后主里布': 'Pattern2D_483306_1',
+  '左里袖': 'Pattern2D_484674_1',
+  '右里袖': 'Pattern2D_485220_1',
+  '后领下': 'Pattern2D_2361709',
+}
 export class World {
   constructor() {
     this.init();
@@ -112,7 +129,7 @@ export class World {
           v.material = v.material.clone();
         }
       });
-      // 找到mesh gui
+      // // 找到mesh gui
       // this.cloth.children.forEach(v => {
       //   const fd = this.gui.addFolder(v.name);
       //   const params = {
@@ -127,12 +144,51 @@ export class World {
       // })
       dracoLoader.dispose();
 
+      this.textureModel();
       this.decalManager = new DecalManager({
         renderer: this.renderer,
         scene: this.scene,
         controls: this.controls,
         camera: this.camera,
       });
+    });
+  }
+
+  textureModel() {
+    const textureLoader = new THREE.TextureLoader();
+    const decalDiffuse = textureLoader.load("/texture/style/2.svg");
+    decalDiffuse.wrapS = THREE.RepeatWrapping;
+    decalDiffuse.wrapT = THREE.RepeatWrapping;
+    decalDiffuse.flipY = true;
+
+    const material = new THREE.MeshBasicMaterial({
+      map: decalDiffuse,
+      transparent: true,
+      polygonOffset: true
+    });
+    const mesh = this.cloth.getObjectByName(ClothkeyMap['前主外布']); 
+    mesh.material = material;
+    const params = {
+      offsetX: 0,
+      offsetY: 0,
+      repeatX: 1,
+      repeatY: 1,
+      polygonOffsetFactor: 0
+    }
+    this.gui.add(params, 'offsetX', -10, 10).name('offsetX').onChange((e) => {
+      decalDiffuse.offset.x = e;
+    });
+    this.gui.add(params, 'offsetY', -10, 10).name('offsetY').onChange((e) => {
+      decalDiffuse.offset.y = e;
+    });
+    this.gui.add(params, 'repeatX', -10, 10).name('repeatX').onChange((e) => {
+      decalDiffuse.repeat.x = e;
+    });
+    this.gui.add(params, 'repeatX', -10, 10).name('repeatX').onChange((e) => {
+      decalDiffuse.repeat.y = e;
+    });
+    this.gui.add(params, 'polygonOffsetFactor', -5, 5).name('polygonOffsetFactor').onChange((e) => {
+      material.polygonOffsetFactor = e;
     });
   }
 
