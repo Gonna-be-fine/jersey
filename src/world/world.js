@@ -48,7 +48,7 @@ export class World {
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
-      0.1,
+      0.01,
       1000
     );
     this.camera.position.z = 120;
@@ -67,7 +67,7 @@ export class World {
 
     // controls
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.minDistance = 0.1;
+    this.controls.minDistance = 0.01;
     this.controls.maxDistance = 100;
 
     // lights
@@ -160,7 +160,10 @@ export class World {
     const decalDiffuse = textureLoader.load("/texture/style/2.svg");
     decalDiffuse.wrapS = THREE.RepeatWrapping;
     decalDiffuse.wrapT = THREE.RepeatWrapping;
+    decalDiffuse.anisotropy = 16;
     decalDiffuse.flipY = true;
+
+    const textTexture = textureLoader.load('/texture/style/text.svg');
 
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
@@ -172,7 +175,7 @@ export class World {
         "uvUnifiedEditor",
         v.geometry.attributes.uv2 || v.geometry.attributes.uv
       );
-      this.pathMesh(v, decalDiffuse, decalDiffuse, 'MultiplyMixDiffuse');
+      this.pathMesh(v, decalDiffuse, textTexture, 'MultiplyMixDiffuse');
     });
   }
 
@@ -205,21 +208,94 @@ export class World {
       m.uniforms.uvUnifiedEditorTransform = { value: new THREE.Matrix3() };
 
       m.fragmentShader = m.fragmentShader.replace(
-        "#include <uv2_pars_fragment>",
-        "#include <uv2_pars_fragment>\n////////////\nuniform sampler2D unifiedMap;\nvarying vec2 vUvUnified;\n\n#ifdef USE_UNIFIED_EDITOR_UV\n    uniform sampler2D unifiedEditorMap;\n    varying vec2 vUvUnifiedEditor;\n#endif\n////////////\n"
-      );
+        "#include <common>",
+        `#include <common>
+         uniform sampler2D unifiedMap;
+         varying vec2 vUvUnified;
+         #ifdef USE_UNIFIED_EDITOR_UV
+          uniform sampler2D unifiedEditorMap;
+          varying vec2 vUvUnifiedEditor;
+         #endif
+      `);
       m.fragmentShader = m.fragmentShader.replace(
         "#include <map_fragment>",
-        "#include <map_fragment>\n////////////\n// SVGs added to diffuse map\n\nvec4 svgTexelColor;\n\n// Combine main svg and svg editor color if available\n#ifdef USE_UNIFIED_EDITOR_UV\n    vec4 unifiedTexelColor = texture2D(unifiedMap, vUvUnified);\n    // Editor SVG w/ different UVs\n    vec4 unifiedEditorTexelColor = texture2D(unifiedEditorMap, vUvUnifiedEditor);\n    // Combine SVG and Editor SVG\n    svgTexelColor = vec4(mix(unifiedTexelColor.rgb, unifiedEditorTexelColor.rgb, unifiedEditorTexelColor.a), unifiedTexelColor.a);\n#else\n    svgTexelColor = texture2D(unifiedMap, vUvUnified);\n#endif\n\n// // #ifdef DEBUG_UV\n// // // Combine\n// // if (gl_FragCoord.x <= 900.) {\n// //     //{{colorMixer.ReplaceDiffuse}}\n// // } else if (gl_FragCoord.x > 900. && gl_FragCoord.x < 1050.) {\n// //     //{{colorMixer.ReplaceMixDiffuse}}\n// // } else {\n// //     //{{colorMixer.MultiplyMixDiffuse}}\n// // }\n// // #else\n// // //{{mixer}}\n// // #endif\n\n// If texture has diffuse use that (what about vertex colour?)\n#ifdef USE_MAP\n    svgTexelColor = mapTexelToLinear(svgTexelColor);\n    #ifndef MIX_TYPE_REPLACE_DIFFUSE\n        #ifdef MIX_TYPE_REPLACE_MIX_DIFFUSE\n            //  mix SVG texture and other maps, except for existing diffuse map\n            diffuseColor = vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);\n        #endif\n        #ifdef MIX_TYPE_MULTIPLY_MIX_DIFFUSE\n            // multiply SVG with existing diffuse map (requires white material) (comes out darker) e.g. KB-652-I-SS-1-Womens-Inline-Polo-Shirt-Polo-Collar-Multi-Size\n            diffuseColor *= vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);\n        #endif\n    #endif\n#else\n    // TODO:  USE_MAP enables mapTexelToLinear, so if material doesn't have it it's missing - using just sRGBToLinear for now?!\n    // https://stackoverflow.com/questions/21630224/three-js-gamma-correction-and-custom-shaders\n    svgTexelColor = sRGBToLinear(svgTexelColor);\n    diffuseColor = svgTexelColor;\n#endif\n\n#ifdef MIX_TYPE_REPLACE_DIFFUSE\n    svgTexelColor = sRGBToLinear(svgTexelColor);\n    diffuseColor = svgTexelColor;\n#endif\n\n////////////\n"
-      );
+        `#include <map_fragment>
+        // SVGs added to diffuse map
+        vec4 svgTexelColor;
+
+        // Combine main svg and svg editor color if available
+        #ifdef USE_UNIFIED_EDITOR_UV
+          vec4 unifiedTexelColor = texture2D(unifiedMap, vUvUnified);
+          // Editor SVG w/ different UVs
+          vec4 unifiedEditorTexelColor = texture2D(unifiedEditorMap, vUvUnifiedEditor);
+          // Combine SVG and Editor SVG
+          svgTexelColor = vec4(mix(unifiedTexelColor.rgb, unifiedEditorTexelColor.rgb, unifiedEditorTexelColor.a), unifiedTexelColor.a);
+        #else
+          svgTexelColor = texture2D(unifiedMap, vUvUnified);
+        #endif
+
+        // // #ifdef DEBUG_UV
+        // // // Combine
+        // // if (gl_FragCoord.x <= 900.) {
+        // //     //{{colorMixer.ReplaceDiffuse}}
+        // // } else if (gl_FragCoord.x > 900. && gl_FragCoord.x < 1050.) {
+        // //     //{{colorMixer.ReplaceMixDiffuse}}
+        // // } else {
+        // //     //{{colorMixer.MultiplyMixDiffuse}}
+        // // }
+        // // #else
+        // // //{{mixer}}
+        // // #endif
+
+        // // If texture has diffuse use that (what about vertex colour?)
+        #ifdef USE_MAP
+          //   svgTexelColor = mapTexelToLinear(svgTexelColor);
+          #ifndef MIX_TYPE_REPLACE_DIFFUSE
+            #ifdef MIX_TYPE_REPLACE_MIX_DIFFUSE
+                //  mix SVG texture and other maps, except for existing diffuse map
+                diffuseColor = vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);
+            #endif
+            #ifdef MIX_TYPE_MULTIPLY_MIX_DIFFUSE
+                // multiply SVG with existing diffuse map (requires white material) (comes out darker) e.g. KB-652-I-SS-1-Womens-Inline-Polo-Shirt-Polo-Collar-Multi-Size
+                diffuseColor *= vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);
+            #endif
+          #endif
+        #else
+          // TODO:  USE_MAP enables mapTexelToLinear, so if material doesn't have it it's missing - using just sRGBToLinear for now?!
+          // https://stackoverflow.com/questions/21630224/three-js-gamma-correction-and-custom-shaders
+          // svgTexelColor = sRGBToLinear(svgTexelColor);
+          diffuseColor = svgTexelColor;
+        #endif
+
+        #ifdef MIX_TYPE_REPLACE_DIFFUSE
+          // svgTexelColor = sRGBToLinear(svgTexelColor);
+          diffuseColor = svgTexelColor;
+        #endif
+        `);
       m.vertexShader = m.vertexShader.replace(
-        "#include <uv2_pars_vertex>",
-        "#include <uv2_pars_vertex>\n////////////\nattribute vec2 uvUnified;\nvarying vec2 vUvUnified;\nuniform mat3 uvUnifiedTransform;\n\n#ifdef USE_UNIFIED_EDITOR_UV\n    attribute vec2 uvUnifiedEditor;\n    varying vec2 vUvUnifiedEditor;\n    uniform mat3 uvUnifiedEditorTransform;\n#endif\n////////////\n"
-      );
+        "#include <common>",
+        `#include <common>
+          attribute vec2 uv2;
+          varying vec2 vUv2;
+          attribute vec2 uvUnified;
+          varying vec2 vUvUnified;
+          uniform mat3 uvUnifiedTransform;
+
+          #ifdef USE_UNIFIED_EDITOR_UV
+            attribute vec2 uvUnifiedEditor;
+            varying vec2 vUvUnifiedEditor;
+            uniform mat3 uvUnifiedEditorTransform;
+          #endif
+        `);
       m.vertexShader = m.vertexShader.replace(
-        "#include <uv2_vertex>",
-        "#include <uv2_vertex>\n\n////////////\n\nvUvUnified = ( uvUnifiedTransform * vec3( uvUnified, 1 ) ).xy;\n#ifdef USE_UNIFIED_EDITOR_UV\n    vUvUnifiedEditor = ( uvUnifiedEditorTransform * vec3( uvUnifiedEditor, 1 ) ).xy;\n#endif\n\n\n////////////\n"
-      );
+        "#include <uv_vertex>",
+        `#include <uv_vertex>
+          vUv2 = uv2;
+          vUvUnified = ( uvUnifiedTransform * vec3( uvUnified, 1 ) ).xy;
+          #ifdef USE_UNIFIED_EDITOR_UV
+            vUvUnifiedEditor = ( uvUnifiedEditorTransform * vec3( uvUnifiedEditor, 1 ) ).xy;
+          #endif
+        `);
     };
   }
 
