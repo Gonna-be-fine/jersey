@@ -5,22 +5,22 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { DecalManager } from "./decal";
 
 const ClothkeyMap = {
-  '领座': 'Pattern2D_2361708',
-  '领面': 'Pattern2D_70819',
-  '前主外布': 'Pattern2D_486144',
-  '后主外布': 'Pattern2D_483306',
-  '前下外布': 'Pattern2D_486129',
-  '后下外布': 'Pattern2D_483920',
-  '左袖领': 'Pattern2D_484659',
-  '右袖领': 'Pattern2D_485516',
-  '左外袖': 'Pattern2D_484674',
-  '右外袖': 'Pattern2D_485220',
-  '前主里布': 'Pattern2D_486144_1',
-  '后主里布': 'Pattern2D_483306_1',
-  '左里袖': 'Pattern2D_484674_1',
-  '右里袖': 'Pattern2D_485220_1',
-  '后领下': 'Pattern2D_2361709',
-}
+  领座: "Pattern2D_2361708",
+  领面: "Pattern2D_70819",
+  前主外布: "Pattern2D_486144",
+  后主外布: "Pattern2D_483306",
+  前下外布: "Pattern2D_486129",
+  后下外布: "Pattern2D_483920",
+  左袖领: "Pattern2D_484659",
+  右袖领: "Pattern2D_485516",
+  左外袖: "Pattern2D_484674",
+  右外袖: "Pattern2D_485220",
+  前主里布: "Pattern2D_486144_1",
+  后主里布: "Pattern2D_483306_1",
+  左里袖: "Pattern2D_484674_1",
+  右里袖: "Pattern2D_485220_1",
+  后领下: "Pattern2D_2361709",
+};
 export class World {
   constructor() {
     this.init();
@@ -144,7 +144,8 @@ export class World {
       // })
       dracoLoader.dispose();
 
-      this.textureModel();
+      // this.textureModel();
+      this.setGeometryAttribute();
       this.decalManager = new DecalManager({
         renderer: this.renderer,
         scene: this.scene,
@@ -152,6 +153,74 @@ export class World {
         camera: this.camera,
       });
     });
+  }
+
+  setGeometryAttribute() {
+    const textureLoader = new THREE.TextureLoader();
+    const decalDiffuse = textureLoader.load("/texture/style/2.svg");
+    decalDiffuse.wrapS = THREE.RepeatWrapping;
+    decalDiffuse.wrapT = THREE.RepeatWrapping;
+    decalDiffuse.flipY = true;
+
+    this.cloth.traverse((v) => {
+      if (!v.isMesh) return;
+      v.geometry.setAttribute(
+        "uvUnified",
+        v.geometry.attributes.uv2 || v.geometry.attributes.uv
+      );
+      v.geometry.setAttribute(
+        "uvUnifiedEditor",
+        v.geometry.attributes.uv2 || v.geometry.attributes.uv
+      );
+      this.pathMesh(v, decalDiffuse, decalDiffuse, 'MultiplyMixDiffuse');
+    });
+  }
+
+  pathMesh(mesh, unifiedTexture, editorTexture, type) {
+    const material = mesh.material;
+    material.customProgramCacheKey = function () {
+      return this.name;
+    };
+
+    material.onBeforeCompile = (m) => {
+      m.defines = m.defines || {};
+      if (mesh.geometry.attributes.uvUnifiedEditor && editorTexture) {
+        m.defines.USE_UNIFIED_EDITOR_UV = "";
+      }
+      m.uniforms.unifiedEditorMap = { value: editorTexture };
+      switch (type) {
+        case "MultiplyMixDiffuse":
+          m.defines.MIX_TYPE_MULTIPLY_MIX_DIFFUSE = "";
+          break;
+        case "ReplaceDiffuse":
+          m.defines.MIX_TYPE_REPLACE_DIFFUSE = "";
+          break;
+        case "ReplaceMixDiffuse":
+          m.defines.MIX_TYPE_REPLACE_MIX_DIFFUSE = "";
+          break;
+      }
+
+      m.uniforms.unifiedMap = { value: unifiedTexture };
+      m.uniforms.uvUnifiedTransform = { value: new THREE.Matrix3() };
+      m.uniforms.uvUnifiedEditorTransform = { value: new THREE.Matrix3() };
+
+      m.fragmentShader = m.fragmentShader.replace(
+        "#include <uv2_pars_fragment>",
+        "#include <uv2_pars_fragment>\n////////////\nuniform sampler2D unifiedMap;\nvarying vec2 vUvUnified;\n\n#ifdef USE_UNIFIED_EDITOR_UV\n    uniform sampler2D unifiedEditorMap;\n    varying vec2 vUvUnifiedEditor;\n#endif\n////////////\n"
+      );
+      m.fragmentShader = m.fragmentShader.replace(
+        "#include <map_fragment>",
+        "#include <map_fragment>\n////////////\n// SVGs added to diffuse map\n\nvec4 svgTexelColor;\n\n// Combine main svg and svg editor color if available\n#ifdef USE_UNIFIED_EDITOR_UV\n    vec4 unifiedTexelColor = texture2D(unifiedMap, vUvUnified);\n    // Editor SVG w/ different UVs\n    vec4 unifiedEditorTexelColor = texture2D(unifiedEditorMap, vUvUnifiedEditor);\n    // Combine SVG and Editor SVG\n    svgTexelColor = vec4(mix(unifiedTexelColor.rgb, unifiedEditorTexelColor.rgb, unifiedEditorTexelColor.a), unifiedTexelColor.a);\n#else\n    svgTexelColor = texture2D(unifiedMap, vUvUnified);\n#endif\n\n// // #ifdef DEBUG_UV\n// // // Combine\n// // if (gl_FragCoord.x <= 900.) {\n// //     //{{colorMixer.ReplaceDiffuse}}\n// // } else if (gl_FragCoord.x > 900. && gl_FragCoord.x < 1050.) {\n// //     //{{colorMixer.ReplaceMixDiffuse}}\n// // } else {\n// //     //{{colorMixer.MultiplyMixDiffuse}}\n// // }\n// // #else\n// // //{{mixer}}\n// // #endif\n\n// If texture has diffuse use that (what about vertex colour?)\n#ifdef USE_MAP\n    svgTexelColor = mapTexelToLinear(svgTexelColor);\n    #ifndef MIX_TYPE_REPLACE_DIFFUSE\n        #ifdef MIX_TYPE_REPLACE_MIX_DIFFUSE\n            //  mix SVG texture and other maps, except for existing diffuse map\n            diffuseColor = vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);\n        #endif\n        #ifdef MIX_TYPE_MULTIPLY_MIX_DIFFUSE\n            // multiply SVG with existing diffuse map (requires white material) (comes out darker) e.g. KB-652-I-SS-1-Womens-Inline-Polo-Shirt-Polo-Collar-Multi-Size\n            diffuseColor *= vec4(mix(diffuseColor.rgb, svgTexelColor.rgb, svgTexelColor.a), diffuseColor.a);\n        #endif\n    #endif\n#else\n    // TODO:  USE_MAP enables mapTexelToLinear, so if material doesn't have it it's missing - using just sRGBToLinear for now?!\n    // https://stackoverflow.com/questions/21630224/three-js-gamma-correction-and-custom-shaders\n    svgTexelColor = sRGBToLinear(svgTexelColor);\n    diffuseColor = svgTexelColor;\n#endif\n\n#ifdef MIX_TYPE_REPLACE_DIFFUSE\n    svgTexelColor = sRGBToLinear(svgTexelColor);\n    diffuseColor = svgTexelColor;\n#endif\n\n////////////\n"
+      );
+      m.vertexShader = m.vertexShader.replace(
+        "#include <uv2_pars_vertex>",
+        "#include <uv2_pars_vertex>\n////////////\nattribute vec2 uvUnified;\nvarying vec2 vUvUnified;\nuniform mat3 uvUnifiedTransform;\n\n#ifdef USE_UNIFIED_EDITOR_UV\n    attribute vec2 uvUnifiedEditor;\n    varying vec2 vUvUnifiedEditor;\n    uniform mat3 uvUnifiedEditorTransform;\n#endif\n////////////\n"
+      );
+      m.vertexShader = m.vertexShader.replace(
+        "#include <uv2_vertex>",
+        "#include <uv2_vertex>\n\n////////////\n\nvUvUnified = ( uvUnifiedTransform * vec3( uvUnified, 1 ) ).xy;\n#ifdef USE_UNIFIED_EDITOR_UV\n    vUvUnifiedEditor = ( uvUnifiedEditorTransform * vec3( uvUnifiedEditor, 1 ) ).xy;\n#endif\n\n\n////////////\n"
+      );
+    };
   }
 
   textureModel() {
@@ -164,32 +233,47 @@ export class World {
     const material = new THREE.MeshBasicMaterial({
       map: decalDiffuse,
       transparent: true,
-      polygonOffset: true
+      polygonOffset: true,
     });
-    const mesh = this.cloth.getObjectByName(ClothkeyMap['前主外布']); 
+    const mesh = this.cloth.getObjectByName(ClothkeyMap["前主外布"]);
     mesh.material = material;
     const params = {
       offsetX: 0,
       offsetY: 0,
       repeatX: 1,
       repeatY: 1,
-      polygonOffsetFactor: 0
-    }
-    this.gui.add(params, 'offsetX', -10, 10).name('offsetX').onChange((e) => {
-      decalDiffuse.offset.x = e;
-    });
-    this.gui.add(params, 'offsetY', -10, 10).name('offsetY').onChange((e) => {
-      decalDiffuse.offset.y = e;
-    });
-    this.gui.add(params, 'repeatX', -10, 10).name('repeatX').onChange((e) => {
-      decalDiffuse.repeat.x = e;
-    });
-    this.gui.add(params, 'repeatX', -10, 10).name('repeatX').onChange((e) => {
-      decalDiffuse.repeat.y = e;
-    });
-    this.gui.add(params, 'polygonOffsetFactor', -5, 5).name('polygonOffsetFactor').onChange((e) => {
-      material.polygonOffsetFactor = e;
-    });
+      polygonOffsetFactor: 0,
+    };
+    this.gui
+      .add(params, "offsetX", -10, 10)
+      .name("offsetX")
+      .onChange((e) => {
+        decalDiffuse.offset.x = e;
+      });
+    this.gui
+      .add(params, "offsetY", -10, 10)
+      .name("offsetY")
+      .onChange((e) => {
+        decalDiffuse.offset.y = e;
+      });
+    this.gui
+      .add(params, "repeatX", -10, 10)
+      .name("repeatX")
+      .onChange((e) => {
+        decalDiffuse.repeat.x = e;
+      });
+    this.gui
+      .add(params, "repeatX", -10, 10)
+      .name("repeatX")
+      .onChange((e) => {
+        decalDiffuse.repeat.y = e;
+      });
+    this.gui
+      .add(params, "polygonOffsetFactor", -5, 5)
+      .name("polygonOffsetFactor")
+      .onChange((e) => {
+        material.polygonOffsetFactor = e;
+      });
   }
 
   initGui() {
