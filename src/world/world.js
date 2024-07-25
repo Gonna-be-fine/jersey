@@ -52,16 +52,16 @@ export class World {
       1000
     );
     this.camera.position.z = 120;
-    // this.camera.position.set(
-    //   0.11459020972513605,
-    //   0.11082042815194855,
-    //   0.9883501457347775
-    // );
     this.camera.position.set(
-      8.644532098765922,
-      2.5346311384277453,
-      -4.494887454121001
+      0.11459020972513605,
+      0.11082042815194855,
+      0.9883501457347775
     );
+    // this.camera.position.set(
+    //   8.644532098765922,
+    //   2.5346311384277453,
+    //   -4.494887454121001
+    // );
 
     this.camera.target = new THREE.Vector3();
 
@@ -164,7 +164,7 @@ export class World {
     decalDiffuse.flipY = true;
 
     const textTexture = textureLoader.load('/texture/style/text.svg');
-
+    this.uvs = [];
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
       v.geometry.setAttribute(
@@ -177,6 +177,21 @@ export class World {
       );
       this.pathMesh(v, decalDiffuse, textTexture, 'MultiplyMixDiffuse');
     });
+    setTimeout(() => {
+      this.uvs.forEach(u => {
+        const params = {
+          tx: 0,
+          ty: 0
+        }
+        this.gui.add(params, 'tx', 0, 1).name('tx').onChange(() => {
+          u.uvUnifiedTransform.value = u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
+          console.log(u.uvUnifiedTransform.value, params)
+        });
+        this.gui.add(params, 'ty', 0, 1).name('ty').onChange(() => {
+          u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
+        });
+      })
+    }, 2000)
   }
 
   pathMesh(mesh, unifiedTexture, editorTexture, type) {
@@ -296,7 +311,9 @@ export class World {
             vUvUnifiedEditor = ( uvUnifiedEditorTransform * vec3( uvUnifiedEditor, 1 ) ).xy;
           #endif
         `);
+        this.uvs.push(m.uniforms);
     };
+
   }
 
   textureModel() {
