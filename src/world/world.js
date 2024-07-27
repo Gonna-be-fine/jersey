@@ -4,23 +4,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { DecalManager } from "./decal";
 
-const ClothkeyMap = {
-  领座: "Pattern2D_2361708",
-  领面: "Pattern2D_70819",
-  前主外布: "Pattern2D_486144",
-  后主外布: "Pattern2D_483306",
-  前下外布: "Pattern2D_486129",
-  后下外布: "Pattern2D_483920",
-  左袖领: "Pattern2D_484659",
-  右袖领: "Pattern2D_485516",
-  左外袖: "Pattern2D_484674",
-  右外袖: "Pattern2D_485220",
-  前主里布: "Pattern2D_486144_1",
-  后主里布: "Pattern2D_483306_1",
-  左里袖: "Pattern2D_484674_1",
-  右里袖: "Pattern2D_485220_1",
-  后领下: "Pattern2D_2361709",
-};
+import { ClothkeyMap, Lights, Lights1 } from "./config";
+
 export class World {
   constructor() {
     this.init();
@@ -30,7 +15,6 @@ export class World {
 
   /**
    * @description: 初始化场景
-   * @param {number} val
    */
   init() {
     // renderer
@@ -39,14 +23,16 @@ export class World {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.position = "absolute";
-    this.renderer.setClearColor("#91a8de");
+    this.renderer.setClearColor("#eadcea");
+    // 颜色矫正
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
     // scene
     this.scene = new THREE.Scene();
 
     // camera
     this.camera = new THREE.PerspectiveCamera(
-      45,
+      75,
       window.innerWidth / window.innerHeight,
       0.01,
       1000
@@ -57,12 +43,6 @@ export class World {
       0.11082042815194855,
       0.9883501457347775
     );
-    // this.camera.position.set(
-    //   8.644532098765922,
-    //   2.5346311384277453,
-    //   -4.494887454121001
-    // );
-
     this.camera.target = new THREE.Vector3();
 
     // controls
@@ -89,13 +69,99 @@ export class World {
 
   /**
    * @description: 添加灯光
-   * @param {number} val
    */
   addLights() {
     const lights = new THREE.Group();
     lights.name = "lights";
-    lights.add(new THREE.AmbientLight(0xffffff, 3));
+    lights.add(new THREE.AmbientLight(0xffffff, 1));
     this.scene.add(lights);
+    const objectLoader = new THREE.ObjectLoader();
+    const o = objectLoader.parse(Lights);
+    this.scene.add(o);
+    // // 添加lightHelper
+    // o.traverse(v => {
+    //   if(v.isLight && v.type === "DirectionalLight"){
+    //     const lh = new THREE.DirectionalLightHelper(v);
+    //     lh.name = v.name + 'hp';
+    //     o.add(lh);
+    //     setTimeout(() => {
+    //       this.addDirectionLightGui(v);
+    //     }, 2000)
+    //   }
+    // })
+  }
+
+  /**
+   * @description: 添加平行光GUI调试
+   * @param {*} light THREE.DirectionalLight
+   */
+  addDirectionLightGui(light) {
+    const param = {
+      x: 0,
+      y: 0,
+      distance: 5,
+      intensity: light.intensity,
+      visible: 0
+    }
+    this.gui.add(param, 'x', 0, 360).onChange(e => {
+      const result = this.getLightPositionAndDisitance({rotateX: param.x, rotateY: param.y, distance: param.distance,target: light.target.position});
+      light.position.copy(result.pos);
+      
+      this.scene.traverse(l => {
+        if(l.isMesh && l.name === 'hp'){
+          l.updateMatrixWorld();
+          l.update();
+        }
+      })
+    })
+    this.gui.add(param, 'y', 0, 180).onChange(e => {
+      const result = this.getLightPositionAndDisitance({rotateX: param.x, rotateY: param.y, distance: param.distance,target: light.target.position});
+      light.position.copy(result.pos);
+      this.scene.traverse(l => {
+        if(l.isMesh && l.name === 'hp'){
+          l.updateMatrixWorld();
+          l.update();
+        }
+      })
+    })
+    this.gui.add(param, 'intensity', 0, 10).onChange(() => {
+      light.intensity = param.intensity;
+    })
+    this.gui.add(param, 'visible', 0, 10).onChange(() => {
+      light.visible = param.visible > 5;
+      this.scene.getObjectByName(light.name + 'hp').visible = light.visible;
+    })
+  }
+
+  /**
+   * @description: 根据rotateY, rotateX, distance, target获取平行光灯光位置
+   * @param {*} lightData {rotateY, rotateX, distance, target}
+   * @param {*} realTarget light.target
+   */
+   getLightPositionAndDisitance(lightData, realTarget) {
+    const { rotateY, rotateX, distance, target } = lightData;
+    const rRad = THREE.MathUtils.degToRad(rotateY);
+    const aRad = THREE.MathUtils.degToRad(rotateX - 90);
+    const v = new THREE.Vector3(1, 0, 0);
+    const tempQua = new THREE.Quaternion();
+    const targetQua = new THREE.Quaternion();
+    tempQua.setFromAxisAngle(new THREE.Vector3(0, 0, 1), rRad);
+    targetQua.multiply(tempQua);
+    tempQua.setFromAxisAngle(new THREE.Vector3(0, 1, 0), aRad);
+    targetQua.multiply(tempQua);
+    v.applyQuaternion(targetQua);
+    v.normalize();
+    const tempTarget = realTarget || target;
+    const targetThreePosition = tempTarget;
+    const t = new THREE.Vector3().set(
+      targetThreePosition.x,
+      targetThreePosition.y,
+      targetThreePosition.z
+    );
+    return {
+      pos: t.add(v.multiplyScalar(distance)),
+      distance
+    };
   }
 
   animation() {
@@ -126,6 +192,8 @@ export class World {
       this.cloth.name = "cloth";
       this.cloth.children.forEach((v) => {
         if (v.isMesh) {
+          // 设置normalMap为空，去除DirectionalLight对衣服的会有白色块
+          v.material.normalMap = null;
           v.material = v.material.clone();
         }
       });
@@ -144,8 +212,7 @@ export class World {
       // })
       dracoLoader.dispose();
 
-      // this.textureModel();
-      this.setGeometryAttribute();
+      this.pathMesh();
       this.decalManager = new DecalManager({
         renderer: this.renderer,
         scene: this.scene,
@@ -155,15 +222,22 @@ export class World {
     });
   }
 
-  setGeometryAttribute() {
+  /**
+   * @description: 配置衣服的uv和纹理
+   */
+  pathMesh() {
     const textureLoader = new THREE.TextureLoader();
-    const decalDiffuse = textureLoader.load("/texture/style/2.svg");
+    const decalDiffuse = textureLoader.load("/texture/style/style1.svg");
     decalDiffuse.wrapS = THREE.RepeatWrapping;
     decalDiffuse.wrapT = THREE.RepeatWrapping;
     decalDiffuse.anisotropy = 16;
-    decalDiffuse.flipY = true;
+    decalDiffuse.flipY = false;
 
     const textTexture = textureLoader.load('/texture/style/text.svg');
+    textTexture.wrapS = THREE.RepeatWrapping;
+    textTexture.wrapT = THREE.RepeatWrapping;
+    textTexture.anisotropy = 16;
+    textTexture.flipY = false;
     this.uvs = [];
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
@@ -175,26 +249,34 @@ export class World {
         "uvUnifiedEditor",
         v.geometry.attributes.uv2 || v.geometry.attributes.uv
       );
-      this.pathMesh(v, decalDiffuse, textTexture, 'MultiplyMixDiffuse');
+
+      this.textureModel(v, decalDiffuse, textTexture, 'MultiplyMixDiffuse');
     });
-    setTimeout(() => {
-      this.uvs.forEach(u => {
-        const params = {
-          tx: 0,
-          ty: 0
-        }
-        this.gui.add(params, 'tx', 0, 1).name('tx').onChange(() => {
-          u.uvUnifiedTransform.value = u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
-          console.log(u.uvUnifiedTransform.value, params)
-        });
-        this.gui.add(params, 'ty', 0, 1).name('ty').onChange(() => {
-          u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
-        });
-      })
-    }, 2000)
+    // setTimeout(() => {
+    //   this.uvs.forEach(u => {
+    //     const params = {
+    //       tx: 0,
+    //       ty: 0
+    //     }
+    //     this.gui.add(params, 'tx', 0, 1).name('tx').onChange(() => {
+    //       u.uvUnifiedTransform.value = u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
+    //       console.log(u.uvUnifiedTransform.value, params)
+    //     });
+    //     this.gui.add(params, 'ty', 0, 1).name('ty').onChange(() => {
+    //       u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
+    //     });
+    //   })
+    // }, 2000)
   }
 
-  pathMesh(mesh, unifiedTexture, editorTexture, type) {
+  /**
+   * @description: 纹理绘制
+   * @param {number} mesh mesh
+   * @param {Texture} unifiedTexture 底图纹理
+   * @param {Texture} editorTexture 文字纹理
+   * @param {string} type 渲染类型
+   */
+  textureModel(mesh, unifiedTexture, editorTexture, type) {
     const material = mesh.material;
     material.customProgramCacheKey = function () {
       return this.name;
@@ -248,7 +330,7 @@ export class World {
         #else
           svgTexelColor = texture2D(unifiedMap, vUvUnified);
         #endif
-
+        
         // // #ifdef DEBUG_UV
         // // // Combine
         // // if (gl_FragCoord.x <= 900.) {
@@ -314,59 +396,6 @@ export class World {
         this.uvs.push(m.uniforms);
     };
 
-  }
-
-  textureModel() {
-    const textureLoader = new THREE.TextureLoader();
-    const decalDiffuse = textureLoader.load("/texture/style/2.svg");
-    decalDiffuse.wrapS = THREE.RepeatWrapping;
-    decalDiffuse.wrapT = THREE.RepeatWrapping;
-    decalDiffuse.flipY = true;
-
-    const material = new THREE.MeshBasicMaterial({
-      map: decalDiffuse,
-      transparent: true,
-      polygonOffset: true,
-    });
-    const mesh = this.cloth.getObjectByName(ClothkeyMap["前主外布"]);
-    mesh.material = material;
-    const params = {
-      offsetX: 0,
-      offsetY: 0,
-      repeatX: 1,
-      repeatY: 1,
-      polygonOffsetFactor: 0,
-    };
-    this.gui
-      .add(params, "offsetX", -10, 10)
-      .name("offsetX")
-      .onChange((e) => {
-        decalDiffuse.offset.x = e;
-      });
-    this.gui
-      .add(params, "offsetY", -10, 10)
-      .name("offsetY")
-      .onChange((e) => {
-        decalDiffuse.offset.y = e;
-      });
-    this.gui
-      .add(params, "repeatX", -10, 10)
-      .name("repeatX")
-      .onChange((e) => {
-        decalDiffuse.repeat.x = e;
-      });
-    this.gui
-      .add(params, "repeatX", -10, 10)
-      .name("repeatX")
-      .onChange((e) => {
-        decalDiffuse.repeat.y = e;
-      });
-    this.gui
-      .add(params, "polygonOffsetFactor", -5, 5)
-      .name("polygonOffsetFactor")
-      .onChange((e) => {
-        material.polygonOffsetFactor = e;
-      });
   }
 
   initGui() {
