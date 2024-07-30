@@ -70,11 +70,12 @@ export class DecalManager {
    */
   createDecalMaterial() {
     const textureLoader = new THREE.TextureLoader();
-    const decalDiffuse = textureLoader.load("/texture/decal-diffuse.png");
+    const decalDiffuse = textureLoader.load("/texture/logo/2.png");
+    // const decalDiffuse = textureLoader.load("/texture/decal-diffuse.png");
 
     this.decalMaterial = new THREE.MeshBasicMaterial({
       map: decalDiffuse,
-      color: new THREE.Color(0xffeeff),
+      // color: new THREE.Color(0xffeeff),
       transparent: true,
       depthTest: true,
       depthWrite: false,
