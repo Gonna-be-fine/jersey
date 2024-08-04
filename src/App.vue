@@ -1,5 +1,5 @@
 <template>
-  <div></div>
+  <div id="svgCtn"></div>
 </template>
 
 <script setup>
@@ -12,4 +12,13 @@ onMounted(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+#svgCtn{
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* width: 100vw;
+  height: 100vh;
+  overflow: hidden; */
+}
+</style>

@@ -13,6 +13,7 @@
     "@babylonjs/gui": "^7.15.1",
     "@babylonjs/inspector": "^7.15.1",
     "@babylonjs/loaders": "^7.15.1",
+    "@svgdotjs/svg.js": "^3.2.4",
     "three": "^0.166.1",
     "vue": "^3.4.31"
   },

@@ -1,16 +1,71 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { DecalManager } from "./decal";
-
-import { ClothkeyMap, Lights, Lights1 } from "./config";
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { DecalManager } from './decal';
+import { SVG } from '@svgdotjs/svg.js';
+import { ClothkeyMap, Lights, Lights1 } from './config';
+import { randInt } from 'three/src/math/mathutils';
 
 export class World {
   constructor() {
     this.init();
     this.importModel();
     this.initGui();
+    // this.testSvg();
+  }
+
+  async testSvg() {
+    const svgText = await fetch('/texture/style/text.svg').then((res) =>
+      res.text()
+    );
+    const el = document.getElementById('svgCtn');
+    el.innerHTML = svgText;
+    const params = { step: 0 };
+    this.gui
+      .add(params, 'step', -200, 200)
+      .name('step')
+      .onChange((e) => {
+        if (e > 0) {
+          this.changeSvg(30);
+        } else {
+          this.changeSvg(-30);
+        }
+      });
+  }
+
+  svgToTexture(svgString) {
+    // 创建一个 Image 元素
+    var img = new Image();
+
+    const canvas = this.testCanvas;
+    const ctx = this.testCtx;
+
+    // 将 SVG 字符串绘制到 Canvas 上
+    var DOMURL = window.URL || window.webkitURL || window;
+    var svgBlob = new Blob([svgString], {
+      type: 'image/svg+xml;charset=utf-8',
+    });
+    var url = DOMURL.createObjectURL(svgBlob);
+
+    img.onload =  () => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      DOMURL.revokeObjectURL(url); // 释放 URL 对象
+      document.body.append(this.testCanvas)
+      this.textTexture.needsUpdate = true;
+    };
+
+    img.src = url;
+  }
+
+  async changeSvg(step) {
+    const rootSvg = SVG('#svgroot');
+    const image = rootSvg.findOne('#svg_10');
+    const imageClone = image.clone();
+    imageClone.id(`svg_10_${parseInt(Math.random() * 1000)}`);
+    imageClone.move(imageClone.x() + step, imageClone.y());
+    image.parents()[0].add(imageClone);
+    window.rootSvg = rootSvg;
   }
 
   /**
@@ -22,10 +77,10 @@ export class World {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
-    this.renderer.domElement.style.position = "absolute";
-    this.renderer.setClearColor("#eadcea");
+    this.renderer.domElement.style.position = 'absolute';
+    this.renderer.setClearColor('#eadcea');
     // 颜色矫正
-    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
     // scene
     this.scene = new THREE.Scene();
@@ -59,7 +114,7 @@ export class World {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     };
-    window.addEventListener("resize", onWindowResize, false);
+    window.addEventListener('resize', onWindowResize, false);
 
     this.scene.add(new THREE.AxesHelper(1));
     // animation
@@ -72,7 +127,7 @@ export class World {
    */
   addLights() {
     const lights = new THREE.Group();
-    lights.name = "lights";
+    lights.name = 'lights';
     lights.add(new THREE.AmbientLight(0xffffff, 1));
     this.scene.add(lights);
     const objectLoader = new THREE.ObjectLoader();
@@ -101,36 +156,46 @@ export class World {
       y: 0,
       distance: 5,
       intensity: light.intensity,
-      visible: 0
-    }
-    this.gui.add(param, 'x', 0, 360).onChange(e => {
-      const result = this.getLightPositionAndDisitance({rotateX: param.x, rotateY: param.y, distance: param.distance,target: light.target.position});
+      visible: 0,
+    };
+    this.gui.add(param, 'x', 0, 360).onChange((e) => {
+      const result = this.getLightPositionAndDisitance({
+        rotateX: param.x,
+        rotateY: param.y,
+        distance: param.distance,
+        target: light.target.position,
+      });
       light.position.copy(result.pos);
-      
-      this.scene.traverse(l => {
-        if(l.isMesh && l.name === 'hp'){
+
+      this.scene.traverse((l) => {
+        if (l.isMesh && l.name === 'hp') {
           l.updateMatrixWorld();
           l.update();
         }
-      })
-    })
-    this.gui.add(param, 'y', 0, 180).onChange(e => {
-      const result = this.getLightPositionAndDisitance({rotateX: param.x, rotateY: param.y, distance: param.distance,target: light.target.position});
+      });
+    });
+    this.gui.add(param, 'y', 0, 180).onChange((e) => {
+      const result = this.getLightPositionAndDisitance({
+        rotateX: param.x,
+        rotateY: param.y,
+        distance: param.distance,
+        target: light.target.position,
+      });
       light.position.copy(result.pos);
-      this.scene.traverse(l => {
-        if(l.isMesh && l.name === 'hp'){
+      this.scene.traverse((l) => {
+        if (l.isMesh && l.name === 'hp') {
           l.updateMatrixWorld();
           l.update();
         }
-      })
-    })
+      });
+    });
     this.gui.add(param, 'intensity', 0, 10).onChange(() => {
       light.intensity = param.intensity;
-    })
+    });
     this.gui.add(param, 'visible', 0, 10).onChange(() => {
       light.visible = param.visible > 5;
       this.scene.getObjectByName(light.name + 'hp').visible = light.visible;
-    })
+    });
   }
 
   /**
@@ -138,7 +203,7 @@ export class World {
    * @param {*} lightData {rotateY, rotateX, distance, target}
    * @param {*} realTarget light.target
    */
-   getLightPositionAndDisitance(lightData, realTarget) {
+  getLightPositionAndDisitance(lightData, realTarget) {
     const { rotateY, rotateX, distance, target } = lightData;
     const rRad = THREE.MathUtils.degToRad(rotateY);
     const aRad = THREE.MathUtils.degToRad(rotateX - 90);
@@ -160,7 +225,7 @@ export class World {
     );
     return {
       pos: t.add(v.multiplyScalar(distance)),
-      distance
+      distance,
     };
   }
 
@@ -181,20 +246,23 @@ export class World {
   importModel() {
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath("/lib/draco/");
+    dracoLoader.setDecoderPath('/lib/draco/');
     loader.setDRACOLoader(dracoLoader);
 
-    loader.load("/data/cloth.glb", (gltf) => {
+    loader.load('/data/cloth.glb', (gltf) => {
       this.cloth = gltf.scene;
       this.cloth.position.y = -1.2;
 
       this.scene.add(gltf.scene);
-      this.cloth.name = "cloth";
+      this.cloth.name = 'cloth';
       this.cloth.children.forEach((v) => {
         if (v.isMesh) {
           // 设置normalMap为空，去除DirectionalLight对衣服的会有白色块
           v.material.normalMap = null;
-          v.material = v.material.clone();
+          if (!this.clothMaterial) {
+            this.clothMaterial = v.material;
+          }
+          v.material = this.clothMaterial;
         }
       });
       // // 找到mesh gui
@@ -222,12 +290,32 @@ export class World {
     });
   }
 
+  async createTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2046;
+    canvas.height = 2046;
+
+    const context = canvas.getContext('2d');
+
+    this.testCanvas = canvas;
+    this.testCtx = context;
+    const canvasTexture = new THREE.CanvasTexture(canvas);
+    this.textTexture = canvasTexture;
+    const svgText = await fetch('/texture/style/text.svg').then((res) =>
+      res.text()
+    );
+    this.svgToTexture(svgText);
+    canvasTexture.needsUpdate = true;
+    this.textTexture.anisotropy = 16;
+    this.textTexture.flipY = false;
+  }
+
   /**
    * @description: 配置衣服的uv和纹理
    */
   pathMesh() {
     const textureLoader = new THREE.TextureLoader();
-    const decalDiffuse = textureLoader.load("/texture/style/style1.svg");
+    const decalDiffuse = textureLoader.load('/texture/style/style1.svg');
     decalDiffuse.wrapS = THREE.RepeatWrapping;
     decalDiffuse.wrapT = THREE.RepeatWrapping;
     decalDiffuse.anisotropy = 16;
@@ -238,46 +326,42 @@ export class World {
     textTexture.wrapT = THREE.RepeatWrapping;
     textTexture.anisotropy = 16;
     textTexture.flipY = false;
-    this.uvs = [];
+
+    this.createTexture();
+
+
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
       v.geometry.setAttribute(
-        "uvUnified",
+        'uvUnified',
         v.geometry.attributes.uv2 || v.geometry.attributes.uv
       );
       v.geometry.setAttribute(
-        "uvUnifiedEditor",
+        'uvUnifiedEditor',
         v.geometry.attributes.uv2 || v.geometry.attributes.uv
       );
-
-      this.textureModel(v, decalDiffuse, textTexture, 'MultiplyMixDiffuse');
+      if (!this.firstMesh) {
+        this.firstMesh = v;
+      }
     });
-    // setTimeout(() => {
-    //   this.uvs.forEach(u => {
-    //     const params = {
-    //       tx: 0,
-    //       ty: 0
-    //     }
-    //     this.gui.add(params, 'tx', 0, 1).name('tx').onChange(() => {
-    //       u.uvUnifiedTransform.value = u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
-    //       console.log(u.uvUnifiedTransform.value, params)
-    //     });
-    //     this.gui.add(params, 'ty', 0, 1).name('ty').onChange(() => {
-    //       u.uvUnifiedTransform.value.setUvTransform(params.tx,params.ty, 1, 1, 0, 0, 0);
-    //     });
-    //   })
-    // }, 2000)
+    this.decalDiffuse = decalDiffuse;
+    this.textureModel(
+      this.firstMesh,
+      decalDiffuse,
+      this.textTexture,
+      'MultiplyMixDiffuse'
+    );
   }
 
   /**
    * @description: 纹理绘制
-   * @param {number} mesh mesh
+   * @param {THREE.Mesh} mesh mesh
    * @param {Texture} unifiedTexture 底图纹理
    * @param {Texture} editorTexture 文字纹理
    * @param {string} type 渲染类型
    */
   textureModel(mesh, unifiedTexture, editorTexture, type) {
-    const material = mesh.material;
+    const material = this.clothMaterial;
     material.customProgramCacheKey = function () {
       return this.name;
     };
@@ -285,27 +369,26 @@ export class World {
     material.onBeforeCompile = (m) => {
       m.defines = m.defines || {};
       if (mesh.geometry.attributes.uvUnifiedEditor && editorTexture) {
-        m.defines.USE_UNIFIED_EDITOR_UV = "";
+        m.defines.USE_UNIFIED_EDITOR_UV = '';
+      }
+      switch (type) {
+        case 'MultiplyMixDiffuse':
+          m.defines.MIX_TYPE_MULTIPLY_MIX_DIFFUSE = '';
+          break;
+        case 'ReplaceDiffuse':
+          m.defines.MIX_TYPE_REPLACE_DIFFUSE = '';
+          break;
+        case 'ReplaceMixDiffuse':
+          m.defines.MIX_TYPE_REPLACE_MIX_DIFFUSE = '';
+          break;
       }
       m.uniforms.unifiedEditorMap = { value: editorTexture };
-      switch (type) {
-        case "MultiplyMixDiffuse":
-          m.defines.MIX_TYPE_MULTIPLY_MIX_DIFFUSE = "";
-          break;
-        case "ReplaceDiffuse":
-          m.defines.MIX_TYPE_REPLACE_DIFFUSE = "";
-          break;
-        case "ReplaceMixDiffuse":
-          m.defines.MIX_TYPE_REPLACE_MIX_DIFFUSE = "";
-          break;
-      }
-
       m.uniforms.unifiedMap = { value: unifiedTexture };
       m.uniforms.uvUnifiedTransform = { value: new THREE.Matrix3() };
       m.uniforms.uvUnifiedEditorTransform = { value: new THREE.Matrix3() };
 
       m.fragmentShader = m.fragmentShader.replace(
-        "#include <common>",
+        '#include <common>',
         `#include <common>
          uniform sampler2D unifiedMap;
          varying vec2 vUvUnified;
@@ -313,9 +396,10 @@ export class World {
           uniform sampler2D unifiedEditorMap;
           varying vec2 vUvUnifiedEditor;
          #endif
-      `);
+      `
+      );
       m.fragmentShader = m.fragmentShader.replace(
-        "#include <map_fragment>",
+        '#include <map_fragment>',
         `#include <map_fragment>
         // SVGs added to diffuse map
         vec4 svgTexelColor;
@@ -368,9 +452,10 @@ export class World {
           // svgTexelColor = sRGBToLinear(svgTexelColor);
           diffuseColor = svgTexelColor;
         #endif
-        `);
+        `
+      );
       m.vertexShader = m.vertexShader.replace(
-        "#include <common>",
+        '#include <common>',
         `#include <common>
           attribute vec2 uv2;
           varying vec2 vUv2;
@@ -383,31 +468,33 @@ export class World {
             varying vec2 vUvUnifiedEditor;
             uniform mat3 uvUnifiedEditorTransform;
           #endif
-        `);
+        `
+      );
       m.vertexShader = m.vertexShader.replace(
-        "#include <uv_vertex>",
+        '#include <uv_vertex>',
         `#include <uv_vertex>
           vUv2 = uv2;
           vUvUnified = ( uvUnifiedTransform * vec3( uvUnified, 1 ) ).xy;
           #ifdef USE_UNIFIED_EDITOR_UV
             vUvUnifiedEditor = ( uvUnifiedEditorTransform * vec3( uvUnifiedEditor, 1 ) ).xy;
           #endif
-        `);
-        this.uvs.push(m.uniforms);
+        `
+      );
+      this.uniforms = m.uniforms;
     };
-
+    material.needsUpdate = true;
   }
 
   initGui() {
     const gui = new dat.GUI();
     this.gui = gui;
     const params = {
-      backgroundColor: "#ffffff",
+      backgroundColor: '#ffffff',
     };
     // gui.add(params, 'rotationSpeed', 0, 0.1).name('Rotation Speed');
     gui
-      .addColor(params, "backgroundColor")
-      .name("Background Color")
+      .addColor(params, 'backgroundColor')
+      .name('Background Color')
       .onChange((color) => {
         this.renderer.setClearColor(color);
       });
