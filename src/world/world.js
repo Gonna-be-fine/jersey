@@ -3,69 +3,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decal';
-import { SVG } from '@svgdotjs/svg.js';
 import { ClothkeyMap, Lights, Lights1 } from './config';
-import { randInt } from 'three/src/math/mathutils';
+import { ClothTexture } from './ClothTexture';
 
 export class World {
   constructor() {
     this.init();
     this.importModel();
     this.initGui();
-    // this.testSvg();
-  }
-
-  async testSvg() {
-    const svgText = await fetch('/texture/style/text.svg').then((res) =>
-      res.text()
-    );
-    const el = document.getElementById('svgCtn');
-    el.innerHTML = svgText;
-    const params = { step: 0 };
-    this.gui
-      .add(params, 'step', -200, 200)
-      .name('step')
-      .onChange((e) => {
-        if (e > 0) {
-          this.changeSvg(30);
-        } else {
-          this.changeSvg(-30);
-        }
-      });
-  }
-
-  svgToTexture(svgString) {
-    // 创建一个 Image 元素
-    var img = new Image();
-
-    const canvas = this.testCanvas;
-    const ctx = this.testCtx;
-
-    // 将 SVG 字符串绘制到 Canvas 上
-    var DOMURL = window.URL || window.webkitURL || window;
-    var svgBlob = new Blob([svgString], {
-      type: 'image/svg+xml;charset=utf-8',
-    });
-    var url = DOMURL.createObjectURL(svgBlob);
-
-    img.onload =  () => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      DOMURL.revokeObjectURL(url); // 释放 URL 对象
-      document.body.append(this.testCanvas)
-      this.textTexture.needsUpdate = true;
-    };
-
-    img.src = url;
-  }
-
-  async changeSvg(step) {
-    const rootSvg = SVG('#svgroot');
-    const image = rootSvg.findOne('#svg_10');
-    const imageClone = image.clone();
-    imageClone.id(`svg_10_${parseInt(Math.random() * 1000)}`);
-    imageClone.move(imageClone.x() + step, imageClone.y());
-    image.parents()[0].add(imageClone);
-    window.rootSvg = rootSvg;
   }
 
   /**
@@ -290,45 +235,12 @@ export class World {
     });
   }
 
-  async createTexture() {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2046;
-    canvas.height = 2046;
-
-    const context = canvas.getContext('2d');
-
-    this.testCanvas = canvas;
-    this.testCtx = context;
-    const canvasTexture = new THREE.CanvasTexture(canvas);
-    this.textTexture = canvasTexture;
-    const svgText = await fetch('/texture/style/text.svg').then((res) =>
-      res.text()
-    );
-    this.svgToTexture(svgText);
-    canvasTexture.needsUpdate = true;
-    this.textTexture.anisotropy = 16;
-    this.textTexture.flipY = false;
-  }
-
   /**
    * @description: 配置衣服的uv和纹理
    */
   pathMesh() {
-    const textureLoader = new THREE.TextureLoader();
-    const decalDiffuse = textureLoader.load('/texture/style/style1.svg');
-    decalDiffuse.wrapS = THREE.RepeatWrapping;
-    decalDiffuse.wrapT = THREE.RepeatWrapping;
-    decalDiffuse.anisotropy = 16;
-    decalDiffuse.flipY = false;
-
-    const textTexture = textureLoader.load('/texture/style/text.svg');
-    textTexture.wrapS = THREE.RepeatWrapping;
-    textTexture.wrapT = THREE.RepeatWrapping;
-    textTexture.anisotropy = 16;
-    textTexture.flipY = false;
-
-    this.createTexture();
-
+    this.mainTextManager = new ClothTexture({img: '/texture/style/style1.svg'})
+    this.editTextManager = new ClothTexture({img: '/texture/style/text.svg'});
 
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
@@ -344,11 +256,10 @@ export class World {
         this.firstMesh = v;
       }
     });
-    this.decalDiffuse = decalDiffuse;
     this.textureModel(
       this.firstMesh,
-      decalDiffuse,
-      this.textTexture,
+      this.mainTextManager.canvasTexture,
+      this.editTextManager.canvasTexture,
       'MultiplyMixDiffuse'
     );
   }
