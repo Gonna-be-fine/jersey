@@ -23,9 +23,9 @@ class DecalManager {
     this.useTextureFloat
       ? (this.uvReadPixelArray = new Float32Array(4))
       : (this.uvReadPixelArray = new Uint8Array(4));
-    const v2 = THREE.Vector2();
+    const v2 = new THREE.Vector2();
     this.world.renderer.getSize(v2);
-    this.renderTarget = new THREE.RenderTarget(v2.width, v2.height, {
+    this.renderTarget = new THREE.WebGLRenderTarget(v2.width, v2.height, {
       format: THREE.RGBAFormat,
       type: this.useTextureFloat ? THREE.FloatType : THREE.UnsignedByteType,
     });
@@ -54,7 +54,7 @@ class DecalManager {
       offsetY = e.offsetY || e.layerY;
     }
     if(renderer.readRenderTargetPixels){
-      renderer.readRenderTargetPixels(this.renderTarget, r, this.renderTarget.height - offsetY, 1, 1, this.uvReadPixelArray);
+      renderer.readRenderTargetPixels(this.renderTarget, offsetX, this.renderTarget.height - offsetY, 1, 1, this.uvReadPixelArray);
     }
     if(this.useTextureFloat) {
       this.mouse.x = this.uvReadPixelArray[0];
@@ -64,7 +64,7 @@ class DecalManager {
       this.mouse.y = this.uvReadPixelArray[1] / 255;
     }
     this.mouse.cursorOverCanvas = 0 !== this.mouse.x && 1 !== this.mouse.y;
-    
+    console.log(this.mouse)
   }
   delegate(e) {}
   delegateDragOver(e) {}
@@ -102,4 +102,21 @@ class DecalManager {
         return this.delegateDrop(t);
       });
   }
+
+  render() {
+    if(!this.world.camera)return;
+    this.world.scene.overrideMaterial = this.customUvmaterial;
+    this.world.renderer.setRenderTarget(this.renderTarget);
+    this.world.renderer.render(this.world.scene, this.world.camera);
+    this.world.renderer.setRenderTarget(null);
+    this.world.scene.overrideMaterial = null;
+  }
+
+  resize() {
+    const v = new THREE.Vector2();
+    this.world.renderer.getSize(v);
+    this.renderTarget.setSize(v.x, v.y);
+  }
 }
+
+export { DecalManager };

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
-import { DecalManager } from './decal';
+import { DecalManager } from './decalManager';
 import { ClothkeyMap, Lights, Lights1 } from './config';
 import { ClothTexture } from './ClothTexture';
 
@@ -62,6 +62,10 @@ export class World {
     window.addEventListener('resize', onWindowResize, false);
 
     this.scene.add(new THREE.AxesHelper(1));
+
+    // init DecalManager
+    this.decalManager = new DecalManager(this);
+
     // animation
     this.clock = new THREE.Clock();
     this.animation();
@@ -180,6 +184,7 @@ export class World {
 
       const delta = this.clock.getDelta();
       this.controls.update(delta);
+      this.decalManager.render();
       this.renderer.render(this.scene, this.camera);
     };
     animate();
@@ -226,12 +231,6 @@ export class World {
       dracoLoader.dispose();
 
       this.pathMesh();
-      this.decalManager = new DecalManager({
-        renderer: this.renderer,
-        scene: this.scene,
-        controls: this.controls,
-        camera: this.camera,
-      });
     });
   }
 
