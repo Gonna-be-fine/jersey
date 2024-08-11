@@ -1,5 +1,6 @@
 import { CanvasTexture } from "three";
 import { SVG } from '@svgdotjs/svg.js';
+import { SvgEditor } from "./SvgEditor";
 
 const defaultOpts = {
   width: 2048,
@@ -30,6 +31,13 @@ class ClothTexture {
     const svgText = await fetch(img).then((res) =>
       res.text()
     );
+    const svgCtn = document.querySelector('#svgCtn');
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svgElement = svgDoc.documentElement;
+    svgCtn.appendChild(svgElement);
+    this.svgEl = SVG(svgElement);
+    console.log(this.svgEl)
     this.svgToTexture(svgText);
   }
 
@@ -57,10 +65,10 @@ class ClothTexture {
     img.src = url;
   }
 
-  edit(step) {
+  edit(x, y) {
     const rootSvg = SVG('#svgroot');
     const imageClone = rootSvg.findOne('#svg_10');
-    imageClone.move(imageClone.x() + step, imageClone.y());
+    imageClone.move(x, y);
     
     const svgText = rootSvg.node.outerHTML;
     this.svgToTexture(svgText);

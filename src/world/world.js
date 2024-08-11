@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decalManager';
 import { ClothkeyMap, Lights, Lights1 } from './config';
 import { ClothTexture } from './ClothTexture';
+import { SvgEditor } from './SvgEditor';
 
 export class World {
   constructor() {
@@ -240,6 +241,11 @@ export class World {
   pathMesh() {
     this.mainTextManager = new ClothTexture({img: '/texture/style/style1.svg'})
     this.editTextManager = new ClothTexture({img: '/texture/style/text.svg'});
+
+    setTimeout(() => {
+      this.svgEditor = new SvgEditor(this);
+      this.svgEditor.getEditElement();
+    }, 2000)
 
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;

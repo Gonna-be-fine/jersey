@@ -34,7 +34,7 @@ class DecalManager {
     this.mouse = {
       x: void 0,
       y: void 0,
-      cursorOverCanvas: void 0
+      cursorOverCanvas: void 0,
     };
     this.setupEvent();
   }
@@ -42,33 +42,70 @@ class DecalManager {
   updateUv(e) {
     const renderer = this.world.renderer;
     let offsetX, offsetY;
-    if(['click', 'mousedown', 'mouseup', 'mousemove', 'mouseover', 'mouseout', 'mouseenter', 'mouseleave'].includes(e.type)){
+    if (
+      [
+        'click',
+        'mousedown',
+        'mouseup',
+        'mousemove',
+        'mouseover',
+        'mouseout',
+        'mouseenter',
+        'mouseleave',
+      ].includes(e.type)
+    ) {
       offsetX = e.offsetX || e.layerX;
       offsetY = e.offsetY || e.layerY;
     } else {
-      if('dragover' !== e.type){
-        console.warn("unsupported event", e.type);
+      if ('dragover' !== e.type) {
+        console.warn('unsupported event', e.type);
         return;
       }
       offsetX = e.offsetX || e.layerX;
       offsetY = e.offsetY || e.layerY;
     }
-    if(renderer.readRenderTargetPixels){
-      renderer.readRenderTargetPixels(this.renderTarget, offsetX, this.renderTarget.height - offsetY, 1, 1, this.uvReadPixelArray);
+    if (renderer.readRenderTargetPixels) {
+      renderer.readRenderTargetPixels(
+        this.renderTarget,
+        offsetX,
+        this.renderTarget.height - offsetY,
+        1,
+        1,
+        this.uvReadPixelArray
+      );
     }
-    if(this.useTextureFloat) {
+    if (this.useTextureFloat) {
       this.mouse.x = this.uvReadPixelArray[0];
       this.mouse.y = this.uvReadPixelArray[1];
-    }else{
+    } else {
       this.mouse.x = this.uvReadPixelArray[0] / 255;
       this.mouse.y = this.uvReadPixelArray[1] / 255;
     }
     this.mouse.cursorOverCanvas = 0 !== this.mouse.x && 1 !== this.mouse.y;
-    console.log(this.mouse)
+    // console.log(this.mouse);
+    // this.updateTexture();
   }
-  delegate(e) {}
-  delegateDragOver(e) {}
-  delegateDrop(e) {}
+  delegate(e) {
+    // this.world.
+  }
+  delegateDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.updateUv(e);
+  }
+  delegateDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.updateUv(e);
+  }
+
+  updateTexture() {
+    const editTextureManager = this.world.editTextManager;
+    const x = this.mouse.x * editTextureManager.svgEl.width();
+    const y = this.mouse.y * editTextureManager.svgEl.height();
+    console.log(x, y);
+    this.world.editTextManager.edit(x, y);
+  }
 
   setupEvent() {
     let events = ['click', 'mousemove', 'touchstart', 'touchmove', 'touchend'];
@@ -86,7 +123,7 @@ class DecalManager {
       'dblclick',
       'mouseup',
       'touchstart',
-      'mousemove',
+      // 'mousemove',
       'touchmove',
       'touchend',
     ];
@@ -97,14 +134,14 @@ class DecalManager {
     }
     this.el.addEventListener('dragover', (t) => {
       return this.delegateDragOver(t);
-    }),
-      this.el.addEventListener('drop', (t) => {
-        return this.delegateDrop(t);
-      });
+    });
+    this.el.addEventListener('drop', (t) => {
+      return this.delegateDrop(t);
+    });
   }
 
   render() {
-    if(!this.world.camera)return;
+    if (!this.world.camera) return;
     this.world.scene.overrideMaterial = this.customUvmaterial;
     this.world.renderer.setRenderTarget(this.renderTarget);
     this.world.renderer.render(this.world.scene, this.world.camera);
