@@ -1,5 +1,5 @@
 import { SVG } from '@svgdotjs/svg.js';
-import * as $ from 'jquery';
+import $ from 'jquery';
 
 function getIntersectionList(el, target) {}
 
@@ -19,16 +19,23 @@ class SvgEditor {
         this.selectNode(e.target)
       })
       el.addEventListener('mousedown', (e) => {
+        console.log('mousedown')
         if(!this.selected) return;
         this.isMove = true;
       })
       el.addEventListener('mousemove', (e) => {
+        console.log('mousemove')
         if(!this.selected) return;
         this.moveNode(e);
       })
       el.addEventListener('mouseup', (e) => {
+        console.log('mouseup')
         if(!this.selected) return;
         this.isMove = false;
+      })
+      $(el).on('mousemove', (e) => {
+        console.log(e, 'mousemove');
+        this.moveNode(e);
       })
     })
   }
@@ -54,6 +61,10 @@ class SvgEditor {
     this.trigger(el, event, mouse, (enable) => {
       this.world && this.world.controls && (this.world.controls.enabled = !enable);
     })
+  }
+
+  getSvgElement() {
+    return this.svgEl.node;
   }
 
   trigger(el, event, mouse, callback) {
@@ -139,7 +150,7 @@ class SvgEditor {
       controlEnabled = !!intersectTarget;
     }
     if(customEvent){
-      $(svgElement).trigger(customEvent);
+      $(svgElement).find('#svg_10').trigger(customEvent);
     }
     if(event.type === 'touchend' || event.type === 'touchcancel'){
       controlEnabled = false;

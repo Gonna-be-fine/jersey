@@ -86,7 +86,7 @@ class DecalManager {
     // this.updateTexture();
   }
   delegate(e) {
-    // this.world.
+    this.world.svgEditor && this.world.svgEditor.onDelegate(this.world.renderer.domElement, e, this.mouse);
   }
   delegateDragOver(e) {
     e.preventDefault();

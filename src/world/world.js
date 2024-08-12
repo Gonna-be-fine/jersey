@@ -24,7 +24,7 @@ export class World {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.position = 'absolute';
-    this.renderer.setClearColor('#eadcea');
+    this.renderer.setClearColor('#757575');
     // 颜色矫正
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
@@ -59,6 +59,7 @@ export class World {
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.decalManager.resize();
     };
     window.addEventListener('resize', onWindowResize, false);
 
