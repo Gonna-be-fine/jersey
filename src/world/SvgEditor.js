@@ -33,7 +33,7 @@ class SvgEditor {
         if(!this.selected) return;
         this.isMove = false;
       })
-      $(el).on('mousemove', (e) => {
+      $(this.svgEl.node).on('mousemove', (e) => {
         console.log(e, 'mousemove');
         this.moveNode(e);
       })
@@ -42,8 +42,9 @@ class SvgEditor {
 
   moveNode(e) {
     const svgEl = SVG(e.target);
-    svgEl.move(e.offsetX, e.offsetY);
-    console.log(e.offsetX, e.offsetY);
+    svgEl.move(e.clientX, e.clientY);
+    this.world.editTextManager.svgToTexture(this.svgEl.node.outerHTML)
+    console.log(e.clientX, e.clientY);
   }
 
   selectNode(el) {
@@ -59,7 +60,7 @@ class SvgEditor {
 
   onDelegate(el, event, mouse) {
     this.trigger(el, event, mouse, (enable) => {
-      this.world && this.world.controls && (this.world.controls.enabled = !enable);
+      // this.world && this.world.controls && (this.world.controls.enabled = !enable);
     })
   }
 
@@ -133,10 +134,14 @@ class SvgEditor {
         cancelable: event.cancelable,
         view: event.view,
         detail: event.detail,
-        pageX: offsetX + leftDiff,
-        pageY: offsetY + topDiff,        
-        clientX: offsetX + leftDiff,
-        clientY: offsetY + topDiff,
+        pageX: offsetX,
+        pageY: offsetY,        
+        clientX: offsetX,
+        clientY: offsetY,
+        // pageX: offsetX + leftDiff,
+        // pageY: offsetY + topDiff,        
+        // clientX: offsetX + leftDiff,
+        // clientY: offsetY + topDiff,
         target: intersectTarget,
         currentTarget: svgElement,
         delegateTarget: svgElement,
@@ -150,7 +155,7 @@ class SvgEditor {
       controlEnabled = !!intersectTarget;
     }
     if(customEvent){
-      $(svgElement).find('#svg_10').trigger(customEvent);
+      $(svgElement).trigger(customEvent);
     }
     if(event.type === 'touchend' || event.type === 'touchcancel'){
       controlEnabled = false;

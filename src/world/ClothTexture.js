@@ -1,6 +1,5 @@
 import { CanvasTexture } from "three";
 import { SVG } from '@svgdotjs/svg.js';
-import { SvgEditor } from "./SvgEditor";
 
 const defaultOpts = {
   width: 2048,
