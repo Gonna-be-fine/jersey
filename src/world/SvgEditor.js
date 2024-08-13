@@ -11,32 +11,27 @@ class SvgEditor {
   getEditElement() {
     this.editList = ['svg_10'];
     this.svgEl = this.world.editTextManager.svgEl;    
-    this.editList.forEach(id => {
-      const el = this.svgEl.node.getElementById(id)
-      if(!el) return;
-      el.addEventListener('selected', (e) => {
-        console.log(e);
-        this.selectNode(e.target)
-      })
-      el.addEventListener('mousedown', (e) => {
-        console.log('mousedown')
-        if(!this.selected) return;
-        this.isMove = true;
-      })
-      el.addEventListener('mousemove', (e) => {
-        console.log('mousemove')
-        if(!this.selected) return;
+    
+    $(this.svgEl.node).on('mousedown', (e) => {
+      console.log(e, 'mousedown');
+      if(!e.srcElement) return;
+      this.isMoving = this.selectedNode === e.srcElement || e.srcElement.id === 'rectSelected';
+    })
+    $(this.svgEl.node).on('mousemove', (e) => {
+      // console.log(e, 'mousemove');
+      if(this.isMoving) {
         this.moveNode(e);
-      })
-      el.addEventListener('mouseup', (e) => {
-        console.log('mouseup')
-        if(!this.selected) return;
-        this.isMove = false;
-      })
-      $(this.svgEl.node).on('mousemove', (e) => {
-        console.log(e, 'mousemove');
-        this.moveNode(e);
-      })
+      }
+    })
+    $(this.svgEl.node).on('mouseup', (e) => {
+      console.log(e, 'mouseup');
+      if(!e.srcElement || this.isMoving) {
+        this.isMoving = false;
+        return;
+      }
+      this.selectedNode = e.srcElement;
+      this.selectNode(e.srcElement);
+      this.isMoving = false;
     })
   }
 
@@ -51,16 +46,19 @@ class SvgEditor {
     const box = el.getBBox();
     const symbol = this.svgEl.group()
     const rect = symbol.rect(box.width, box.height).fill({opacity: 0}).stroke({ color: '#f06', width: 4, linecap: 'round', linejoin: 'round' });
+    rect.attr('id', 'rectSelected')
+    window.rect = rect;
     rect.move(box.x, box.y);
     window.symbol = symbol
     const image = symbol.image('https://cdn.img42.com/4b6f5e63ac50c95fe147052d8a4db676.jpeg')
     image.size(100, 100).move(box.x - 50, box.y- 50);
+    this.world.editTextManager.svgToTexture(this.svgEl.node.outerHTML)
     // window.use = use
   }
 
   onDelegate(el, event, mouse) {
     this.trigger(el, event, mouse, (enable) => {
-      // this.world && this.world.controls && (this.world.controls.enabled = !enable);
+      this.world && this.world.controls && (this.world.controls.enabled = !enable);
     })
   }
 
