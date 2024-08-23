@@ -14,6 +14,7 @@
     "@babylonjs/inspector": "^7.15.1",
     "@babylonjs/loaders": "^7.15.1",
     "@svgdotjs/svg.js": "^3.2.4",
+    "@svgedit/svgcanvas": "^7.2.3",
     "jquery": "^3.7.1",
     "lodash": "^4.17.21",
     "three": "^0.166.1",

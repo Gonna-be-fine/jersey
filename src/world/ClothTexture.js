@@ -30,11 +30,11 @@ class ClothTexture {
     const svgText = await fetch(img).then((res) =>
       res.text()
     );
-    const svgCtn = document.querySelector('#svgCtn');
+    // const svgCtn = document.querySelector('#svgCtn');
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
     const svgElement = svgDoc.documentElement;
-    svgCtn.appendChild(svgElement);
+    // svgCtn.appendChild(svgElement);
     this.svgEl = SVG(svgElement);
     console.log(this.svgEl)
     this.svgToTexture(svgText);

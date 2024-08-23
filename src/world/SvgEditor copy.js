@@ -1,47 +1,39 @@
-/*
- * @Author: chris.c Chris.C@frontop.cn
- * @Date: 2024-08-23 16:51:54
- * @LastEditors: chris.c Chris.C@frontop.cn
- * @LastEditTime: 2024-08-23 17:42:23
- * @FilePath: \jersey\src\world\SvgEditor.js
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import { SVG } from '@svgdotjs/svg.js';
 import $ from 'jquery';
 import SvgCanvas from '@svgedit/svgcanvas';
 
 function getIntersectionList(el, target) {}
-const config = {
-  initFill: { color: 'FFFFFF', opacity: 1 },
-  initStroke: { color: '000000', opacity: 1, width: 1 },
-  text: { stroke_width: 0, font_size: 24, font_family: 'serif' },
-  initOpacity: 1,
-  imgPath: '/src/editor/images',
-  dimensions: [ 2048, 2048 ],
-  baseUnit: 'px'
-}
+
 class SvgEditor {
   constructor(world) {
     this.world = world;
-    this.init();
   }
 
-  init() {
-    const container = document.querySelector('#svgCtn');
-    this.svgCanvas = new SvgCanvas(container, config);
-  }
-
-  setSvgString(svgStr) {
-    const success = this.svgCanvas.setSvgString(svgStr);
-    if(!success) {
-      console.error('无法解析svg');
-      return;
-    }
-    const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
-    const svgElement = svgDoc.documentElement;
-    this.svgEl = SVG(svgElement);
-    this.svgCanvas.updateCanvas(this.svgEl.width(), this.svgEl.height());
+  getEditElement() {
+    this.editList = ['svg_10'];
+    this.svgEl = this.world.editTextManager.svgEl;    
+    
+    $(this.svgEl.node).on('mousedown', (e) => {
+      console.log(e, 'mousedown');
+      if(!e.srcElement) return;
+      this.isMoving = this.selectedNode === e.srcElement || e.srcElement.id === 'rectSelected';
+    })
+    $(this.svgEl.node).on('mousemove', (e) => {
+      // console.log(e, 'mousemove');
+      if(this.isMoving) {
+        this.moveNode(e);
+      }
+    })
+    $(this.svgEl.node).on('mouseup', (e) => {
+      console.log(e, 'mouseup');
+      if(!e.srcElement || this.isMoving) {
+        this.isMoving = false;
+        return;
+      }
+      this.selectedNode = e.srcElement;
+      this.selectNode(e.srcElement);
+      this.isMoving = false;
+    })
   }
 
   moveNode(e) {
@@ -72,7 +64,7 @@ class SvgEditor {
   }
 
   getSvgElement() {
-    return this.svgCanvas.svgroot;
+    return this.svgEl.node;
   }
 
   trigger(el, event, mouse, callback) {
