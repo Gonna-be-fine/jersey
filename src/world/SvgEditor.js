@@ -16,10 +16,11 @@ const config = {
   initStroke: { color: '000000', opacity: 1, width: 1 },
   text: { stroke_width: 0, font_size: 24, font_family: 'serif' },
   initOpacity: 1,
-  imgPath: '/src/editor/images',
+  imgPath: '/',
   dimensions: [ 2048, 2048 ],
   baseUnit: 'px'
 }
+
 class SvgEditor {
   constructor(world) {
     this.world = world;
@@ -31,17 +32,27 @@ class SvgEditor {
     this.svgCanvas = new SvgCanvas(container, config);
   }
 
-  setSvgString(svgStr) {
+  async setSvgString(options) {
+    const { url, svgString } = options;
+    let svgStr;
+    if(svgString) {
+      svgStr = svgString;
+    }else if(url){
+      svgStr = await fetch(url).then(res => res.text())
+    }else{
+      return false;
+    }
     const success = this.svgCanvas.setSvgString(svgStr);
     if(!success) {
       console.error('无法解析svg');
-      return;
+      return false;
     }
     const parser = new DOMParser();
-    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svgDoc = parser.parseFromString(svgStr, 'image/svg+xml');
     const svgElement = svgDoc.documentElement;
     this.svgEl = SVG(svgElement);
     this.svgCanvas.updateCanvas(this.svgEl.width(), this.svgEl.height());
+    return true;
   }
 
   moveNode(e) {
@@ -72,10 +83,108 @@ class SvgEditor {
   }
 
   getSvgElement() {
+    // return document.querySelector('#svgCtn');
     return this.svgCanvas.svgroot;
   }
 
   trigger(el, event, mouse, callback) {
+    const svgElement = this.getSvgElement();
+    let customEvent = null;
+    let controlEnabled = false;
+
+    let {type, button} = event;
+    let isPreventDefault = false;
+    switch(type){
+      case 'touchstart':
+        isPreventDefault = true;
+        type = 'mousedown';
+        break;
+      case 'touchmove':
+        isPreventDefault = true;
+        type = 'mousemove';
+        break;
+      case 'touchend':
+        isPreventDefault = true;
+        type = 'mouseup';
+        break;
+      case 'touchstart':
+        isPreventDefault = true;
+        type = 'mousedown';
+        break;
+      case 'touchcancel':
+        isPreventDefault = true;
+        type = 'mouseup';
+        break;
+    }
+    if(isPreventDefault) {
+      event.preventDefault();
+      button = 0;
+    }
+    if(mouse.cursorOverCanvas || type === 'mouseup') {
+      const rect = svgElement.getBoundingClientRect();
+      const offsetX = rect.width * mouse.x;
+      const offsetY = rect.height * mouse.y;
+      const svgRect = svgElement.createSVGRect();
+      svgRect.x = offsetX;
+      svgRect.y = offsetY;
+      svgRect.width = svgRect.height = 1;
+      const intersectList = svgElement.getIntersectionList && !svgElement.querySelector(".layer svg[id^=svg_], use") ? svgElement.getIntersectionList(svgRect, null) : getIntersectionList(svgElement, svgRect);
+      const intersectTarget = intersectList[intersectList.length - 1];
+      // 传递intersectionEvent事件
+
+      
+      el.style.cursor = intersectTarget ? intersectTarget.style.cursor : 'default';
+      const screenRect = document.body.getBoundingClientRect();
+      let topDiff = rect.top - screenRect.top;
+      let leftDiff = rect.left - screenRect.left;
+      if(type === 'drop') {
+        console.log('drop event');
+        const str = (mouse.originalEvent || mouse).dataTransfer.getData('text');
+        if(typeof str === 'string') {
+          str.trim();
+          let dom = JSON.parse(str);
+          // 传递addImage事件
+
+        }
+        return;
+      }
+      const ctnEl = document.querySelector('#svgCtn');
+      customEvent = $.Event(type, {
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        view: event.view,
+        detail: event.detail,
+        // pageX: offsetX,
+        // pageY: offsetY,        
+        // clientX: offsetX,
+        // clientY: offsetY,
+        pageX: offsetX + leftDiff,
+        pageY: offsetY + topDiff,        
+        clientX: offsetX + leftDiff,
+        clientY: offsetY + topDiff,
+        // target: intersectTarget,
+        // currentTarget: ctnEl,
+        // delegateTarget: ctnEl,
+        srcElement: intersectTarget,
+        toElement: intersectTarget,
+        altKey: false,
+        shiftKey: event.shiftKey,
+        metaKey: event.metaKey,
+        button: button
+      })
+      controlEnabled = !!intersectTarget;
+    }
+    if(customEvent && customEvent.srcElement){
+      // customEvent.intersectTarget.dispatch(customEvent)
+      $(customEvent.intersectTarget).trigger(customEvent);
+    }
+    if(event.type === 'touchend' || event.type === 'touchcancel'){
+      controlEnabled = false;
+    }
+    callback(controlEnabled);
+  }
+
+  _trigger(el, event, mouse, callback) {
     const svgElement = this.getSvgElement();
     let customEvent = null;
     let controlEnabled = false;

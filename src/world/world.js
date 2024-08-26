@@ -240,13 +240,13 @@ export class World {
    * @description: 配置衣服的uv和纹理
    */
   pathMesh() {
-    this.mainTextManager = new ClothTexture({img: '/texture/style/style1.svg'})
-    this.editTextManager = new ClothTexture({img: '/texture/style/text.svg'});
+    this.mainTextManager = new ClothTexture({
+      img: '/texture/style/style1.svg',
+    });
+    this.editTextManager = new ClothTexture({ img: '/texture/style/text.svg' });
 
-    setTimeout(() => {
-      this.svgEditor = new SvgEditor(this);
-      this.svgEditor.getEditElement();
-    }, 2000)
+    this.svgEditor = new SvgEditor(this);
+    this.svgEditor.setSvgString({url: '/texture/style/editText.svg'});
 
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
