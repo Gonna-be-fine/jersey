@@ -120,6 +120,8 @@ class SvgEditor {
       event.preventDefault();
       button = 0;
     }
+    const ctnEl = document.querySelector('#svgCtn');
+    let intersectTarget = null;
     if(mouse.cursorOverCanvas || type === 'mouseup') {
       const rect = svgElement.getBoundingClientRect();
       const offsetX = rect.width * mouse.x;
@@ -129,7 +131,7 @@ class SvgEditor {
       svgRect.y = offsetY;
       svgRect.width = svgRect.height = 1;
       const intersectList = svgElement.getIntersectionList && !svgElement.querySelector(".layer svg[id^=svg_], use") ? svgElement.getIntersectionList(svgRect, null) : getIntersectionList(svgElement, svgRect);
-      const intersectTarget = intersectList[intersectList.length - 1];
+      intersectTarget = intersectList[intersectList.length - 1];
       // 传递intersectionEvent事件
 
       
@@ -148,8 +150,7 @@ class SvgEditor {
         }
         return;
       }
-      const ctnEl = document.querySelector('#svgCtn');
-      customEvent = $.Event(type, {
+      customEvent = new MouseEvent(type, {
         bubbles: event.bubbles,
         cancelable: event.cancelable,
         view: event.view,
@@ -162,9 +163,9 @@ class SvgEditor {
         pageY: offsetY + topDiff,        
         clientX: offsetX + leftDiff,
         clientY: offsetY + topDiff,
-        // target: intersectTarget,
-        // currentTarget: ctnEl,
-        // delegateTarget: ctnEl,
+        target: intersectTarget,
+        currentTarget: ctnEl,
+        delegateTarget: ctnEl,
         srcElement: intersectTarget,
         toElement: intersectTarget,
         altKey: false,
@@ -174,9 +175,10 @@ class SvgEditor {
       })
       controlEnabled = !!intersectTarget;
     }
-    if(customEvent && customEvent.srcElement){
-      // customEvent.intersectTarget.dispatch(customEvent)
-      $(customEvent.intersectTarget).trigger(customEvent);
+    if(intersectTarget && customEvent){
+      intersectTarget.dispatchEvent(customEvent);
+    }else if(!intersectTarget && customEvent){
+      ctnEl.dispatchEvent(customEvent);
     }
     if(event.type === 'touchend' || event.type === 'touchcancel'){
       controlEnabled = false;

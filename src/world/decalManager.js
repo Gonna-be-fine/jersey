@@ -117,8 +117,8 @@ class DecalManager {
 
     events = [
       'mousedown',
-      'pointerdown',
-      'pointerup',
+      // 'pointerdown',
+      // 'pointerup',
       'mousemove',
       'dblclick',
       'mouseup',

@@ -262,6 +262,11 @@
   resolved "https://registry.npmmirror.com/@svgdotjs/svg.js/-/svg.js-3.2.4.tgz#4716be92a64c66b29921b63f7235fcfb953fb13a"
   integrity sha512-BjJ/7vWNowlX3Z8O4ywT58DqbNRyYlkk6Yz/D13aB7hGmfQTvGX4Tkgtm/ApYlu9M7lCQi15xUEidqMUmdMYwg==
 
+"@svgedit/svgcanvas@^7.2.3":
+  version "7.2.3"
+  resolved "https://registry.npmmirror.com/@svgedit/svgcanvas/-/svgcanvas-7.2.3.tgz#88f01156c9d1249d994d5ab2d412cfd8c155b4a6"
+  integrity sha512-VR4h36CiZnEAR4VHDokSFeBx0zUsTv1hJVtJF3mnkk3OhZesvXLJrmMYj1Oc2KOTk5rXMq6rxlcQUWvoejn5IQ==
+
 "@types/estree@1.0.5":
   version "1.0.5"
   resolved "https://registry.npmmirror.com/@types/estree/-/estree-1.0.5.tgz#a6ce3e556e00fd9895dd872dd172ad0d4bd687f4"

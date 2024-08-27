@@ -6,6 +6,7 @@ import { DecalManager } from './decalManager';
 import { ClothkeyMap, Lights, Lights1 } from './config';
 import { ClothTexture } from './ClothTexture';
 import { SvgEditor } from './SvgEditor';
+import { debounce, throttle } from 'lodash';
 
 export class World {
   constructor() {
@@ -236,6 +237,36 @@ export class World {
     });
   }
 
+  mutateEditor() {
+    this.svgEditor = new SvgEditor(this);
+    this.svgEditor.setSvgString({ url: '/texture/style/editText.svg' });
+
+    // 观察器的配置（需要观察什么变动）
+    const config = { attributes: true, childList: true, subtree: true };
+    // 当观察到变动时执行的回调函数
+    const callback = throttle((mutationsList, observer) => {
+      // Use traditional 'for loops' for IE 11
+      // for (let mutation of mutationsList) {
+      //   if (mutation.type === 'childList') {
+      //     console.log('A child node has been added or removed.');
+      //   } else if (mutation.type === 'attributes') {
+      //     console.log(
+      //       'The ' + mutation.attributeName + ' attribute was modified.'
+      //     );
+      //   }
+      // }
+      console.log('changes')
+      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgRoot());
+    }, 200);
+
+    // 创建一个观察器实例并传入回调函数
+    const observer = new MutationObserver(callback);
+
+    // 以上述配置开始观察目标节点
+    const targetNode = this.svgEditor.svgCanvas.getSvgRoot();
+    observer.observe(targetNode, config);
+  }
+
   /**
    * @description: 配置衣服的uv和纹理
    */
@@ -245,8 +276,7 @@ export class World {
     });
     this.editTextManager = new ClothTexture({ img: '/texture/style/text.svg' });
 
-    this.svgEditor = new SvgEditor(this);
-    this.svgEditor.setSvgString({url: '/texture/style/editText.svg'});
+    this.mutateEditor();
 
     this.cloth.traverse((v) => {
       if (!v.isMesh) return;
