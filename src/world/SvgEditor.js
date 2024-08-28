@@ -8,7 +8,7 @@
  */
 import { SVG } from '@svgdotjs/svg.js';
 import $ from 'jquery';
-import SvgCanvas from '@svgedit/svgcanvas';
+import SvgCanvas from '../lib/svgcanvas';
 
 function getIntersectionList(el, target) {}
 const config = {

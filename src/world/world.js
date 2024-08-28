@@ -3,10 +3,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decalManager';
-import { ClothkeyMap, Lights, Lights1 } from './config';
+import { Lights } from './config';
 import { ClothTexture } from './ClothTexture';
 import { SvgEditor } from './SvgEditor';
-import { debounce, throttle } from 'lodash';
+import { throttle } from 'lodash';
 
 export class World {
   constructor() {
@@ -256,7 +256,7 @@ export class World {
       //   }
       // }
       console.log('changes')
-      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgRoot());
+      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgString());
     }, 200);
 
     // 创建一个观察器实例并传入回调函数
