@@ -256,7 +256,9 @@ export class World {
       //   }
       // }
       console.log('changes')
-      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgString());
+      // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.svgroot.outerHTML);
+      // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgString());
+      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.svg2String());
     }, 200);
 
     // 创建一个观察器实例并传入回调函数

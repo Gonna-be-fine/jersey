@@ -34,16 +34,16 @@ class ClothTexture {
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
     const svgElement = svgDoc.documentElement;
-    // svgCtn.appendChild(svgElement);
-    this.svgEl = SVG(svgElement);
-    console.log(this.svgEl)
+    // // svgCtn.appendChild(svgElement);
+    // this.svgEl = SVG(svgElement);
+    // console.log(this.svgEl)
     this.svgToTexture(svgText);
   }
 
   svgToTexture(svgString) {
     // 创建一个 Image 元素
     var img = new Image();
-
+    
     const canvas = this.canvas;
     const ctx = this.ctx;
 
