@@ -8923,9 +8923,51 @@ const getUndoManager = () => {
             }
           }
         }
+        if (cmd.elem) {
+          // 根据el来更新textPath
+          const textPath = svgCanvas$c.getElement(cmd.elem.id + 'text');
+          if (textPath) {
+            switch (cmdType) {
+              case 'MoveElementCommand':
+              case 'ChangeElementCommand':
+                resetTextPath(cmd.elem, textPath, cmd);
+                break;
+            }
+          }
+        }
       }
     }
   });
+};
+const resetTextPath = (text, textPath, cmd, eventType) => {
+  // const [dx, dy] = [cmd.newValues.x - cmd.oldValues.x,
+  //   cmd.newValues.y - cmd.oldValues.y]
+  //   const unapply = (eventType === HistoryEventTypes.AFTER_UNAPPLY)
+  //   let  x = unapply ? - dx : dx
+  //   let  y = unapply ? - dy : dy
+  if (!(cmd.newValues.transform && cmd.oldValues.transform) || cmd.oldValues.transform === cmd.newValues.transform) {
+    // 获取path和text的边界框
+    const pathBBox = textPath.getBBox();
+    const textBBox = text.getBBox();
+
+    // 计算path和text中心点
+    const pathCenterX = pathBBox.x + pathBBox.width / 2;
+    const pathCenterY = pathBBox.y + pathBBox.height / 2;
+    const textCenterX = textBBox.x + textBBox.width / 2;
+    const textCenterY = textBBox.y + textBBox.height / 2;
+
+    // 计算中心点之间的距离
+    const dx = textCenterX - pathCenterX;
+    const dy = textCenterY - pathCenterY;
+    const transform = svgCanvas$c.getSvgRoot().createSVGTransform(); // 创建新的SVGTransform对象
+    transform.setTranslate(dx, dy); // 设置平移
+
+    const tplist = getTransformList(textPath);
+    tplist.appendItem(transform);
+  } else {
+    // 应用相同的变换到路径上
+    textPath.setAttribute('transform', cmd.oldValues.transform || '');
+  }
 };
 
 /**
@@ -27072,62 +27114,198 @@ const init$7 = canvas => {
   svgCanvas$7.setPaint = setPaintMethod; // Set a color/gradient to a fill/stroke.
   svgCanvas$7.diyAddText = diyAddText; // 添加文字
   svgCanvas$7.text2Path = text2Path; // 文字转Path
+  svgCanvas$7.updateDiyText = updateDiyText; // 更新文字Path
+  svgCanvas$7.addDiyImage = addDiyImage; // 添加diy Image
+  svgCanvas$7.deleteElementById = deleteElementById; // 根据id删除元素
 };
-const text2Path = (text, x, y, id) => {
-  opentype.load(svgCanvas$7.getCurConfig().fontFile, function (err, font) {
-    // opentype.load('./fonts/ShipporiAntiqueB1-Regular.ttf', function(err, font) {
-    if (err) {
-      console.error('无法加载字体:', err);
-      return;
+const deleteElementById = id => {
+  const el = svgCanvas$7.getElement(id);
+  if (!el) {
+    console.warn('element of this id is not exist');
+    return;
+  }
+  el.remove();
+  const text = svgCanvas$7.getElement(id + 'text');
+  if (text) {
+    text.remove();
+  }
+};
+const addDiyImage = (url, x, y) => {
+  // regular URL
+  const promised = svgCanvas$7.embedImage(url);
+  // eslint-disable-next-line promise/catch-or-return
+  const nextId = svgCanvas$7.getNextId();
+  promised
+  // eslint-disable-next-line promise/always-return
+  .then(res => {
+    // // switch into "select" mode if we've clicked on an element
+    const {
+      width,
+      height,
+      data
+    } = res;
+    const max = Math.max(svgCanvas$7.getWidth(), svgCanvas$7.getHeight());
+    const maxLen = Math.max(width, height);
+    let ratio = 1;
+    if (max / 2 < maxLen) {
+      ratio = max / 2 / maxLen;
     }
-
-    // 定义要转换为路径的文字、位置和大小
-    const fontSize = svgCanvas$7.getFontSize() - 5;
-
-    // 获取文字路径
-    const path = font.getPath(text, x, y, fontSize);
-    const svgPathData = path.toPathData(5); // 转换为 SVG 路径数据
-
-    // 获取 SVG 容器
-    const svgElement = svgCanvas$7.addSVGElementsFromJson({
-      element: 'g',
-      curStyles: true,
+    const newImage = svgCanvas$7.addSVGElementsFromJson({
+      element: 'image',
       attr: {
-        id: id + 'text',
+        x,
+        y,
+        width: res.width * ratio,
+        height: res.height * ratio,
+        id: nextId,
         opacity: 1,
-        style: 'pointer-events:none',
-        class: 'noEvent'
+        style: 'pointer-events:inherit'
       }
     });
+    setHref(newImage, data);
 
-    // 定义每层的颜色和描边宽度
-    const layers = [{
-      color: '#0044cc',
-      strokeWidth: 16
-    },
-    // 最外层的蓝色描边
-    {
-      color: '#ffee00',
-      strokeWidth: 12
-    },
-    // 中间的黄色描边
-    {
-      color: '#000000',
-      strokeWidth: 6
-    } // 最里面的黑色描边
-    ];
-
-    // 逐层绘制描边
-    layers.forEach(layer => {
-      const outlineElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      outlineElement.setAttribute('d', svgPathData);
-      outlineElement.setAttribute('fill', 'none');
-      outlineElement.setAttribute('stroke', layer.color);
-      outlineElement.setAttribute('stroke-width', layer.strokeWidth);
-      outlineElement.setAttribute('stroke-linejoin', 'round'); // 圆滑的边角
-      svgElement.appendChild(outlineElement);
+    // 选中图片
+    svgCanvas$7.setMode('select');
+    svgCanvas$7.selectOnly([newImage]);
+    svgCanvas$7.selectorManager.requestSelector(svgCanvas$7.selectedElements[0]).showGrips(true);
+    // 增加图片记录
+    svgCanvas$7.addCommandToHistory(new InsertElementCommand$4(newImage));
+    svgCanvas$7.call('changed', [newImage]);
+  }, error => {
+    console.error('error =', error);
+    svgCanvas$7.deleteSelectedElements();
+  });
+  return nextId;
+  // preventClickDefault(newImage)
+};
+const updateDiyText = (id, key, value) => {
+  const selected = svgCanvas$7.getElement(id + 'text');
+  if (!selected) {
+    throw new Error('cannot find Element');
+  }
+  if (key === 'borders') {
+    for (let i = 0; i < value.borders.length; i++) {
+      const path = selected.querySelector(`[textType=${value.borders[i].type}]`);
+      if (!path) {
+        throw new Error('cannot find element of this type');
+      }
+      path.setAttribute('stroke', value.borders[i].color);
+      path.setAttribute('stroke-width', value.borders[i].strokeWidth);
+    }
+  } else {
+    const text = svgCanvas$7.getElement(id);
+    const box = text.getBBox();
+    selected.remove();
+    text.remove();
+    svgCanvas$7.diyAddText(text, box.x + box.width / 2, box.y + box.height / 2, value);
+  }
+};
+const loadFontType = (type, file) => {
+  svgCanvas$7.fontOption = {
+    type,
+    file
+  };
+  return new Promise((resolve, reject) => {
+    opentype.load(file, (err, font) => {
+      if (err) {
+        console.error('无法加载字体:', err);
+        reject(null);
+      }
+      svgCanvas$7.fontOption.font = font;
+      resolve(font);
     });
   });
+};
+const text2Path = async (x, y, id, textOptions, originText) => {
+  const {
+    content,
+    fontSize,
+    borders,
+    fontFile,
+    fontType
+  } = textOptions;
+  // 获取文字路径
+  if (!svgCanvas$7.fontOption || svgCanvas$7.fontOption.type !== fontType) {
+    await loadFontType(fontType, fontFile);
+  }
+  const path = svgCanvas$7.fontOption.font.getPath(content, x, y, fontSize);
+  // 获取路径的边界框 (bounding box)
+  const bbox = path.getBoundingBox();
+  // 计算宽度
+  const width = bbox.x2 - bbox.x1;
+  // 平移路径，将其 x 移动到 width / 2
+  const translateX = -width / 2 - (bbox.x1 - x);
+  path.commands.forEach(cmd => {
+    if (cmd.x !== undefined) cmd.x += translateX;
+    if (cmd.x1 !== undefined) cmd.x1 += translateX; // 控制点1 (贝塞尔曲线)
+    if (cmd.x2 !== undefined) cmd.x2 += translateX; // 控制点2 (贝塞尔曲线)
+  });
+  const svgPathData = path.toPathData(5); // 转换为 SVG 路径数据
+
+  // 获取 SVG 容器
+  const svgElement = svgCanvas$7.addSVGElementsFromJson({
+    element: 'g',
+    curStyles: true,
+    attr: {
+      id: id + 'text',
+      opacity: 1,
+      style: 'pointer-events:none',
+      class: 'noEvent'
+    }
+  });
+
+  // 定义每层的颜色和描边宽度
+  const layers = borders || [{
+    type: 'outside',
+    color: '#0044cc',
+    strokeWidth: 16
+  },
+  // 最外层的蓝色描边
+  {
+    type: 'middle',
+    color: '#ffee00',
+    strokeWidth: 12
+  },
+  // 中间的黄色描边
+  {
+    type: 'inside',
+    color: '#000000',
+    strokeWidth: 6
+  } // 最里面的黑色描边
+  ];
+
+  // 逐层绘制描边
+  layers.forEach(layer => {
+    const outlineElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    outlineElement.setAttribute('d', svgPathData);
+    outlineElement.setAttribute('textType', layer.type);
+    outlineElement.setAttribute('fill', 'none');
+    outlineElement.setAttribute('stroke', layer.color);
+    outlineElement.setAttribute('stroke-width', layer.strokeWidth);
+    outlineElement.setAttribute('stroke-linejoin', 'round'); // 圆滑的边角
+    svgElement.appendChild(outlineElement);
+  });
+  if (originText && originText.transform.baseVal.numberOfItems > 0) {
+    // 获取源元素和目标元素的transform列表
+    let sourceTransformList = originText.transform.baseVal;
+    const textEl = svgCanvas$7.getElement(id);
+    let textPathTransformList = textEl.transform.baseVal;
+    let textElTransformList = svgElement.transform.baseVal;
+
+    // 清空目标元素的transform列表
+    textPathTransformList.clear();
+    textElTransformList.clear();
+
+    // 遍历源元素的transform，将其复制到目标元素
+    for (let i = 0; i < sourceTransformList.numberOfItems; i++) {
+      let transform = sourceTransformList.getItem(i);
+      if (transform.type === 1) {
+        transform.setTranslate(0, 0);
+      }
+      textPathTransformList.appendItem(transform);
+      textElTransformList.appendItem(transform);
+    }
+  }
 };
 
 /**
@@ -27136,28 +27314,37 @@ const text2Path = (text, x, y, id) => {
 * @param {number} y
 * @param {string} text
 */
-const diyAddText = (x, y, text) => {
+const diyAddText = (originText, x, y, textOptions) => {
+  const {
+    content,
+    fontSize,
+    fontType
+  } = textOptions;
   const newText = svgCanvas$7.addSVGElementsFromJson({
     element: 'text',
     curStyles: true,
     attr: {
       x,
       y,
-      id: svgCanvas$7.getNextId(),
+      id: originText ? originText.id : svgCanvas$7.getNextId(),
       fill: svgCanvas$7.getCurText('fill'),
       'stroke-width': svgCanvas$7.getCurText('stroke_width'),
-      'font-size': svgCanvas$7.getCurText('font_size'),
+      'font-size': fontSize,
       'font-family': svgCanvas$7.getCurText('font_family'),
       'text-anchor': 'middle',
       'xml:space': 'preserve',
+      fontType,
       opacity: 0
     }
   });
-  newText.textContent = text;
+  newText.textContent = content;
+  svgCanvas$7.text2Path(x, y, newText.id, textOptions, originText);
   svgCanvas$7.selectOnly([newText]);
   svgCanvas$7.selectorManager.requestSelector(svgCanvas$7.selectedElements[0]).showGrips(true);
-  const tbox = newText.getBBox();
-  svgCanvas$7.text2Path(text, x - tbox.width / 2, y, newText.id);
+  // 增加文字记录
+  svgCanvas$7.addCommandToHistory(new InsertElementCommand$4(newText));
+  svgCanvas$7.call('changed', [newText]);
+  return newText.id;
 };
 
 /**
@@ -54700,7 +54887,7 @@ const init$2 = canvas => {
   svgCanvas$2.exportPDF = exportPDF; // Generates a PDF based on the current image, then calls "exportedPDF"
 };
 const svg2String = () => {
-  svgCanvas$2.saveOptions.apply = false;
+  svgCanvas$2.saveOptions.apply = true;
   // keep calling it until there are none to remove
   while (svgCanvas$2.removeUnusedDefElems() > 0) {} // eslint-disable-line no-empty
 
@@ -55390,7 +55577,11 @@ const embedImage = src => {
         svgCanvas$2.setEncodableImages(src, false);
       }
       svgCanvas$2.setGoodImage(src);
-      resolve(svgCanvas$2.getEncodableImages(src));
+      resolve({
+        data: svgCanvas$2.getEncodableImages(src),
+        width: e.currentTarget.width,
+        height: e.currentTarget.height
+      });
     });
     imgI.addEventListener('error', e => {
       reject(new Error(`error loading image: ${e.currentTarget.attributes.src.value}`));
@@ -55878,13 +56069,13 @@ const convertGradientsMethod = elem => {
 let svgCanvas$1;
 let selectorManager_; // A Singleton
 // change radius if touch screen
-const gripRadius = window.ontouchstart ? 10 : 15;
+const gripRadius = window.ontouchstart ? 10 : 8;
 const selectButtons = {
   se: {
     cursor: 'pointer',
     icon: 'delete.svg',
     imgBase64: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gICAgICAgICAgICAgICAgPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4gICAgICAgICAgICAgICAgPHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJUcmFzaEljb24iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiAgICAgICAgICAgICAgICB3aWR0aD0iMTI3LjU1OXB4IiBoZWlnaHQ9IjEyNy41NTlweCIgdmlld0JveD0iMCAwIDEyNy41NTkgMTI3LjU1OSIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTI3LjU1OSAxMjcuNTU5IiAgICAgICAgICAgICAgICB4bWw6c3BhY2U9InByZXNlcnZlIj4gICAgICAgICAgIDxjaXJjbGUgaWQ9InRyYXNoQmFzZSIgZmlsbD0iI0ZGRkZGRiIgc3Ryb2tlPSIjNjY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgY3g9IjYzLjc4MiIgY3k9IjY0LjY5NyIgcj0iNTguNDk3Ii8+ICAgICAgICAgICA8cGF0aCBpZD0idHJhc2giIGZpbGw9IiM2NjYiIGQ9Ik00OS40MzYsMjguOTU5Yy0wLjI1OSwxLjYyMS0wLjQ3MywzLjEzMS0wLjc2NCw0LjYyN2MtMC4wNSwwLjI1NS0wLjM4OSwwLjU1Mi0wLjY1OSwwLjY1ICAgICAgICAgICAgICAgIGMtMS45MTEsMC42OTQtMy44OTMsMS4yMjEtNS43NDQsMi4wNDRjLTEuMjg5LDAuNTc0LTIuNTI2LDEuNDAyLTMuNTczLDIuMzUxYy0xLjgwOCwxLjY0LTEuNzQ5LDMuNjEyLTAuMDIsNS4zNCAgICAgICAgICAgICAgICBjMS41MjUsMS41MjQsMy40NDIsMi40LDUuNDIzLDMuMTM3YzQuNDIyLDEuNjQ0LDkuMDM2LDIuMzgxLDEzLjcwOSwyLjc0NWM3LjA3LDAuNTUsMTQuMTE1LDAuMjkxLDIxLjAyMi0xLjM5NiAgICAgICAgICAgICAgICBjMi42MzYtMC42NDQsNS4xODItMS43MTgsNy42OTMtMi43NzZjMS4wMDgtMC40MjUsMS45MTItMS4yMzksMi42ODQtMi4wNDhjMS40MjEtMS40ODgsMS41MDQtMy4yMzQsMC4wMTEtNC42MyAgICAgICAgICAgICAgICBjLTEuMjY3LTEuMTg0LTIuNzk1LTIuMTY4LTQuMzU4LTIuOTMzYy0xLjYwNC0wLjc4NS0zLjM3Ny0xLjIzOC01LjEwMi0xLjc1MmMtMC42MDYtMC4xOC0wLjgzNy0wLjM4OS0wLjkwMS0xLjA1MiAgICAgICAgICAgICAgICBjLTAuMTM1LTEuMzgyLTAuNDI3LTIuNzQ5LTAuNjY2LTQuMTg1YzAuMDg3LTAuMDA0LDAuMzEtMC4wNjIsMC41MTEtMC4wMTljMy42NjcsMC43OTQsNy4yODYsMS43NjcsMTAuNTE5LDMuNzM5ICAgICAgICAgICAgICAgIGMxLjI3LDAuNzc1LDIuNDc4LDEuNzIzLDMuNTI1LDIuNzc5YzEuNjM5LDEuNjUzLDIuNDQzLDMuNzEzLDIuMzQ4LDYuMDg5Yy0wLjA2LDEuNTAyLDAuMDYxLDMuMDIxLTAuMTE3LDQuNTA3ICAgICAgICAgICAgICAgIGMtMC4yMjEsMS44NDQtMS4yMTQsMy4zNjMtMi40NjksNC43MjFjLTAuMjk1LDAuMzE5LTAuNTcxLDAuNzcyLTAuNjE0LDEuMTg4Yy0wLjk4MSw5LjQwNC0xLjkyOSwxOC44MTItMi44ODMsMjguMjIgICAgICAgICAgICAgICAgYy0wLjQwMSwzLjk1Ni0wLjc2Niw3LjkxNS0xLjIxNSwxMS44NjVjLTAuMjU0LDIuMjMzLTEuNDM5LDMuOTk5LTMuMTI1LDUuNDMyYy0yLjU4OCwyLjIwMS01LjY3NSwzLjM3Ni04LjkyNiw0LjEwOCAgICAgICAgICAgICAgICBjLTkuMjEyLDIuMDc2LTE4LjM2MiwxLjk5Ni0yNy4zNzUtMS4wNjdjLTIuMzk1LTAuODE0LTQuNTc3LTIuMDMyLTYuMzM0LTMuOTExYy0xLjM3NS0xLjQ3MS0yLjEwMy0zLjIwMy0yLjMwMy01LjIxMSAgICAgICAgICAgICAgICBjLTAuODQtOC40NDUtMS43MTUtMTYuODg2LTIuNTc4LTI1LjMyOWMtMC40NzktNC42ODctMC45NS05LjM3NC0xLjQ1OS0xNC4wNTdjLTAuMDQ2LTAuNDItMC4yNjEtMC44OTgtMC41NTItMS4yMDMgICAgICAgICAgICAgICAgYy0xLjc5Ni0xLjg4Mi0yLjc2LTQuMDctMi42NTQtNi42OThjMC4wMjQtMC42MDEsMC4wNDItMS4yMDYsMC0xLjgwNWMtMC4yNTctMy42OTIsMS4zNjUtNi40NTYsNC4yNTYtOC41NjMgICAgICAgICAgICAgICAgQzQwLjU2MiwzMS4wODcsNDQuOTg4LDI5Ljg4NCw0OS40MzYsMjguOTU5eiBNNjYuNDEsNzcuMjA3YzAtNS4yNDYsMC4wMTgtMTAuNDkzLTAuMDI2LTE1LjczOSAgICAgICAgICAgICAgICBjLTAuMDA1LTAuNTgyLTAuMjA0LTEuMzI3LTAuNTk0LTEuNzA3Yy0wLjkyMy0wLjg5OS0yLjEyOC0wLjg2Mi0zLjI4Ny0wLjQ1Yy0xLjA4OCwwLjM4Ni0xLjMyMiwxLjI5My0xLjMyMSwyLjM0MSAgICAgICAgICAgICAgICBjMC4wMDgsMTAuMzU5LDAuMDAyLDIwLjcxOCwwLjAwNywzMS4wNzdjMC4wMDEsMS44LDAuOTk1LDIuODgsMi42MTMsMi44ODZjMS42MTgsMC4wMDYsMi42MDYtMS4wNzMsMi42MDctMi44NjkgICAgICAgICAgICAgICAgQzY2LjQxNCw4Ny41NjYsNjYuNDEyLDgyLjM4Nyw2Ni40MSw3Ny4yMDd6IE03NS43NDUsOTAuNjM5Yy0wLjExMiwwLjkwOS0wLjA2NCwxLjc3NywwLjgzMSwyLjI5MyAgICAgICAgICAgICAgICBjMC45MzUsMC41MzksMS44NzgsMC4zNTUsMi43NTctMC4xNzFjMS4wNTYtMC42MzEsMS41NDMtMS42NDQsMS42OTMtMi44MTdjMC4xNy0xLjMyNCwwLjI4MS0yLjY1NSwwLjQxOS0zLjk4MyAgICAgICAgICAgICAgICBjMC41Ny01LjQ3OCwxLjE0LTEwLjk1NiwxLjcxLTE2LjQzNGMwLjM4My0zLjY4NSwwLjc5MS03LjM2OCwxLjEzNi0xMS4wNTdjMC4xNTUtMS42NjQtMC44MTYtMi40My0yLjQyOS0yLjAzMSAgICAgICAgICAgICAgICBjLTEuNzY3LDAuNDM2LTIuODU5LDEuOTQ5LTMuMDU0LDQuMTE0Yy0wLjI3MSwyLjk5Mi0wLjU3OSw1Ljk4LTAuODg1LDguOTY5Qzc3LjIwMSw3Ni41NjEsNzYuNDcxLDgzLjYsNzUuNzQ1LDkwLjYzOXogICAgICAgICAgICAgICAgTTUyLjAwNyw5MC45MzZjLTAuMTkyLTEuOTAyLTAuMzYzLTMuNjI5LTAuNTQxLTUuMzU2Yy0wLjU3My01LjU3OC0xLjE0Ny0xMS4xNTUtMS43MjMtMTYuNzMyICAgICAgICAgICAgICAgIGMtMC4zMTYtMy4wNTQtMC42MDctNi4xMTEtMC45NzEtOS4xNTljLTAuMTcxLTEuNDMtMS4wMTktMi40NTMtMi4zMjEtMy4wNDljLTEuNjEzLTAuNzM4LTMuMjgtMC4yMTQtMy4wMTUsMi4xMTUgICAgICAgICAgICAgICAgYzAuNjUxLDUuNzAzLDEuMjE4LDExLjQxNiwxLjgxMywxNy4xMjVjMC40ODgsNC42ODEsMC45NTYsOS4zNjMsMS40NTgsMTQuMDQyYzAuMTUzLDEuNDIxLDAuODE4LDIuNTU0LDIuMjAyLDMuMDk4ICAgICAgICAgICAgICAgIEM1MC42MzEsOTMuNjk3LDUyLjMzNCw5Mi43ODIsNTIuMDA3LDkwLjkzNnogTTYzLjc2OCwyNi4yNzVjLTEuNDA0LDAtMi44MDgtMC4wMjUtNC4yMTEsMC4wMDUgICAgICAgICAgICAgICAgYy0zLjkzMSwwLjA4NC03LjAxMywyLjk3MS03LjI1Nyw2Ljg3OGMtMC4xMSwxLjc2NS0wLjA5NywzLjU0NSwwLjAwMiw1LjMxYzAuMDI4LDAuNDk4LDAuNDQ2LDEuMTUzLDAuODc5LDEuNDE0ICAgICAgICAgICAgICAgIGMxLjE4NywwLjcxNSwyLjQ4OCwwLjY3NywzLjczNiwwLjA1MmMwLjY0OS0wLjMyNSwwLjk3MS0wLjg1MywwLjk1NC0xLjYxOWMtMC4wMzQtMS41MDMtMC4wMjktMy4wMDgtMC4wMDgtNC41MTEgICAgICAgICAgICAgICAgYzAuMDE3LTEuMjU2LDAuNjY1LTEuOTIsMS45MjctMS45MzFjMi42NC0wLjAyNCw1LjI4MS0wLjAyNyw3LjkyLTAuMDAzYzEuNDI1LDAuMDEzLDIuMDY1LDAuNjk0LDIuMDc0LDIuMTE5ICAgICAgICAgICAgICAgIGMwLjAwOSwxLjQzNy0wLjAzOSwyLjg3NiwwLjAyNCw0LjMxYzAuMDIsMC40NTUsMC4xOTYsMS4wMTYsMC41MDQsMS4zMjZjMS4wMTQsMS4wMiwzLjUyOCwxLjAxMiw0LjU0Mi0wLjAwMiAgICAgICAgICAgICAgICBjMC4yOTItMC4yOTIsMC40ODUtMC44MDgsMC40OTktMS4yMjljMC4wNTUtMS42MzYsMC4wNS0zLjI3NSwwLjAxLTQuOTEyYy0wLjA4OC0zLjYxMS0yLjcwNS02LjYzOS02LjI5My03LjA2MiAgICAgICAgICAgICAgICBjLTEuNzQ0LTAuMjA2LTMuNTMzLTAuMDM2LTUuMzAyLTAuMDM2QzYzLjc2OCwyNi4zNDgsNjMuNzY4LDI2LjMxMiw2My43NjgsMjYuMjc1eiIvPiAgICAgICAgICAgIDwvc3ZnPg==',
-    size: 60,
+    size: 20,
     name: 'delete'
   }
   // sw: {

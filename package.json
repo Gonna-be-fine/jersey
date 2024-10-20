@@ -13,6 +13,11 @@
     "@babylonjs/gui": "^7.15.1",
     "@babylonjs/inspector": "^7.15.1",
     "@babylonjs/loaders": "^7.15.1",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
+    "@fortawesome/free-regular-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
     "@svgdotjs/svg.js": "^3.2.4",
     "@svgedit/svgcanvas": "^7.2.3",
     "jquery": "^3.7.1",
@@ -22,6 +27,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.12",
     "vite": "^5.3.4"
   }
 }

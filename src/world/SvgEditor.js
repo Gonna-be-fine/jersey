@@ -7,7 +7,6 @@
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import { SVG } from '@svgdotjs/svg.js';
-import $ from 'jquery';
 import SvgCanvas from '../lib/svgcanvas';
 
 function getIntersectionList(el, target) {}
@@ -21,6 +20,7 @@ const config = {
   baseUnit: 'px',
   fontFile: '/fonts/NotoSansSC-VariableFont_wght.ttf'
 }
+const editContainerId = '#svgCtn';
 
 class SvgEditor {
   constructor(world) {
@@ -29,7 +29,7 @@ class SvgEditor {
   }
 
   init() {
-    const container = document.querySelector('#svgCtn');
+    const container = document.querySelector(editContainerId);
     this.svgCanvas = new SvgCanvas(container, config);
   }
 
@@ -53,6 +53,7 @@ class SvgEditor {
     const svgElement = svgDoc.documentElement;
     this.svgEl = SVG(svgElement);
     this.svgCanvas.updateCanvas(this.svgEl.width(), this.svgEl.height());
+    this.world.fire('load_editSvg');
     return true;
   }
 
@@ -121,7 +122,7 @@ class SvgEditor {
       event.preventDefault();
       button = 0;
     }
-    const ctnEl = document.querySelector('#svgCtn');
+    const ctnEl = document.querySelector(editContainerId);
     let intersectTarget = null;
     if(mouse.cursorOverCanvas || type === 'mouseup') {
       const rect = svgElement.getBoundingClientRect();
@@ -185,6 +186,28 @@ class SvgEditor {
       controlEnabled = false;
     }
     callback(controlEnabled);
+  }
+
+  // 更新editTexture
+  updateEditTextCloth() {
+    this.world.editTextManager.svgToTexture(this.svgCanvas.svg2String());
+  }
+
+  // 添加文字
+  addText() {
+    
+  }
+
+  // 添加LOGO
+  addLogo(url) {
+    const logoId = this.svgCanvas.addDiyImage(url, 466, 4738);
+    // this.updateEditTextCloth();
+    return logoId;
+  }
+
+  removeLogo(id) {
+    this.svgCanvas.deleteElementById(id);
+    
   }
 
 }

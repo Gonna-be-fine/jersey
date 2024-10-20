@@ -3,13 +3,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decalManager';
+import EventDispatch from '../utils/EventDispatch';
 import { Lights } from './config';
 import { ClothTexture } from './ClothTexture';
 import { SvgEditor } from './SvgEditor';
 import { throttle } from 'lodash';
 
-export class World {
-  constructor() {
+export class World extends EventDispatch {
+  constructor(dom) {
+    super();
+    this.glDom = dom;
+    this.width = this.glDom.clientWidth || window.innerWidth;
+    this.height = this.glDom.clientHeight || window.innerHeight;
     this.init();
     this.importModel();
     this.initGui();
@@ -22,9 +27,13 @@ export class World {
     // renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(this.renderer.domElement);
-    this.renderer.domElement.style.position = 'absolute';
+    this.renderer.setSize(this.width, this.height);
+    if(!this.glDom) {
+      document.body.appendChild(this.renderer.domElement);
+      this.renderer.domElement.style.position = 'absolute';
+    }else{
+      this.glDom.appendChild(this.renderer.domElement)
+    }
     this.renderer.setClearColor('#757575');
     // 颜色矫正
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
@@ -35,7 +44,7 @@ export class World {
     // camera
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      this.width / this.height,
       0.01,
       1000
     );
@@ -56,13 +65,20 @@ export class World {
     this.addLights();
 
     // resize handler
-    const onWindowResize = () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.onWindowResize = () => {
+      this.width = this.glDom.clientWidth;
+      this.height = this.glDom.clientHeight;
+      this.camera.aspect = this.width / this.height;
       this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(this.width, this.height);
       this.decalManager.resize();
     };
-    window.addEventListener('resize', onWindowResize, false);
+    if(!this.glDom){
+      window.addEventListener('resize', this.onWindowResize, false);
+    }else{
+      const resizeObserver = new ResizeObserver(this.onWindowResize)
+      resizeObserver.observe(this.glDom);
+    }
 
     this.scene.add(new THREE.AxesHelper(1));
 
