@@ -9,7 +9,24 @@ const CodexColor = [
   '#2ECC71',
   '#3498DB',
 ];
-
+export const fontOptions = [
+  {
+    fontType: 'NotoSans',
+    fontFile: '/fonts/NotoSansSC.ttf'
+  },
+  {
+    fontType: 'ShipporiAntique',
+    fontFile: '/fonts/ShipporiAntique.ttf'
+  },
+  {
+    fontType: 'Anton',
+    fontFile: '/fonts/Anton.ttf'
+  },
+  {
+    fontType: 'LongCang',
+    fontFile: '/fonts/LongCang.ttf'
+  }
+];
 const StrikerColor = ["#4A90E2", "#50E3C2", "#F39C12", "#8E44AD", "#E74C3C", "#16A085", "#D35400", "#2ECC71", "#C0392B", "#3498DB", "#F1C40F", "#1ABC9C"]
 
 class StyleManager {
@@ -163,7 +180,26 @@ class StyleManager {
   }
 
   getTextList(svgEl) {
-    const texts = svgEl
+    const texts = svgEl.querySelectorAll('text');
+    return Array.from(texts).map(text => {
+      const textPath = svgEl.querySelector('#' + text.id + 'text');
+      const fontType = text.getAttribute('fontType')
+      const pathInside = textPath.querySelector('[textType=inside]')
+      const pathMiddle = textPath.querySelector('[textType=middle]')
+      const pathOutside = textPath.querySelector('[textType=outside]')
+      return {
+        id: text.id,
+        content: text.textContent,
+        fontType,
+        fontFile: fontOptions.find(v => v.fontType === fontType).fontFile,
+        fontSize: text.getAttribute('font-size'),
+        borders: [
+          { type: 'outside', color: pathOutside.getAttribute('stroke'), strokeWidth: pathOutside.getAttribute('stroke-width') },
+          { type: 'middle',color: pathMiddle.getAttribute('stroke'), strokeWidth: pathMiddle.getAttribute('stroke-width') },
+          { type: 'inside',color: pathInside.getAttribute('stroke'), strokeWidth: pathInside.getAttribute('stroke-width') },
+        ],
+      }
+    })
   }
 }
 

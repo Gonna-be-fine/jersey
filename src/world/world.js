@@ -48,11 +48,11 @@ export class World extends EventDispatch {
       0.01,
       1000
     );
-    this.camera.position.z = 120;
+    // this.camera.position.z = 120;
     this.camera.position.set(
-      0.11459020972513605,
-      0.11082042815194855,
-      0.9883501457347775
+      -0.009666748088079795,
+      0.1459023549040876,
+      0.6137803763666974
     );
     this.camera.target = new THREE.Vector3();
 

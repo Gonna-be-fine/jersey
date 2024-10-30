@@ -5,11 +5,11 @@
     <h2 class="text-xl font-bold text-gray-800 p-4 border-b bg-gray-50">
       Edit Jersey
     </h2>
+    <!-- <h3 class="tab-title" v-html="getTabTitle('style')"></h3> -->
     <div class="p-4">
       <div class="tab-content">
         <!-- Style tab -->
         <div v-if="currentTab === 'style'" class="space-y-4">
-          <h3 class="tab-title" v-html="getTabTitle('style')"></h3>
           <div class="grid grid-cols-2 gap-4">
             <div v-for="style in jerseyStyles" :key="style.name"
               class="border rounded-lg p-2 cursor-pointer hover:border-blue-500"
@@ -153,22 +153,13 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch, watchEffect } from 'vue';
 import { World } from '../world/world';
-import { StyleManager } from '../utils/StyleManager'
+import { StyleManager, fontOptions } from '../utils/StyleManager'
 import _ from 'lodash'
 
 let world = null;
 const currentTab = ref('text');
 const isPanelExpanded = ref(false);
-const fontOptions = [
-  {
-    fontType: 'NotoSans',
-    fontFile: '/fonts/NotoSansSC.ttf'
-  },
-  {
-    fontType: 'ShipporiAntique',
-    fontFile: '/fonts/ShipporiAntique.ttf'
-  }
-];
+
 const texts = ref([]);
 const logos = ref([]);
 const jerseyParts = ref([]);
@@ -206,8 +197,8 @@ const addText = () => {
     fontFile: fontOptions.find(v => v.fontType === defaultFont).fontFile,
     fontSize: 100,
     borders: [
-      { type: 'outside', color: '#0044cc', strokeWidth: 16 },
-      { type: 'middle', color: '#ffee00', strokeWidth: 12 },
+      { type: 'outside', color: '#000000', strokeWidth: 16 },
+      { type: 'middle', color: '#ffffff', strokeWidth: 12 },
       { type: 'inside', color: '#000000', strokeWidth: 6 },
     ],
   }
@@ -221,6 +212,7 @@ const addText = () => {
 };
 
 const removeText = (index) => {
+  world.svgEditor.svgCanvas.deleteElementById(texts.value[index].id);
   texts.value.splice(index, 1);
 };
 
@@ -292,6 +284,22 @@ const initVarFromTexture = async (jersy) => {
   // 获取图片列表
   const imageList = styleManager.getFontList(window.world.svgEditor.svgCanvas.svgroot)
   logos.value = imageList;
+
+  // 获取文字列表
+  const textList = styleManager.getTextList(window.world.svgEditor.svgCanvas.svgroot)
+  texts.value = textList;
+}
+// svgEditor delete event
+const svgEditorDelete = (e, target) => {
+  const { id, type } = target
+  if(type === 'text'){
+    const i = texts.value.findIndex(v => v.id === id);
+    texts.value.splice(i, 1);
+  }
+  if(type === 'image'){
+    const i = logos.value.findIndex(v => v.id === id);
+    logos.value.splice(i, 1);
+  }
 }
 const glCanvas = ref('glCanvas');
 onMounted(() => {
@@ -299,6 +307,9 @@ onMounted(() => {
   window.world = world;
   world.addEventListener('load_editSvg', () => {
     initVarFromTexture(selectedStyle.value);
+    world.svgEditor.svgCanvas.bind('delete', (e, target) => {
+      svgEditorDelete(e, target);
+    })
   })
 });
 
@@ -444,6 +455,21 @@ watch(
 .color-input::-moz-color-swatch {
   border-radius: 50%;
   border: 2px solid #e5e7eb;
+}
+
+.tab-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4a5568;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #4a5568;
+  display: flex;
+  align-items: center;
+}
+.tab-title i {
+  margin-right: 0.5rem;
+  font-size: 1.25rem;
 }
 
 @media (max-width: 768px) {

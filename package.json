@@ -20,7 +20,9 @@
     "@fortawesome/vue-fontawesome": "^3.0.8",
     "@svgdotjs/svg.js": "^3.2.4",
     "@svgedit/svgcanvas": "^7.2.3",
+    "file-saver": "^2.0.5",
     "jquery": "^3.7.1",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "three": "^0.166.1",
     "vue": "^3.4.31"
