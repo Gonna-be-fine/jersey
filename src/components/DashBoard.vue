@@ -1,96 +1,122 @@
 <template>
   <!-- Edit panel -->
-  <div :class="['edit-panel bg-gray-100', { expanded: isPanelExpanded }]"
-    :style="{ marginLeft: isMobile ? '0px' : '40px' }">
-    <h2 class="text-xl font-bold text-gray-800 p-4 border-b bg-gray-50">
-      Edit Jersey
-    </h2>
-    <!-- <h3 class="tab-title" v-html="getTabTitle('style')"></h3> -->
-    <div class="p-4">
-      <div class="tab-content">
-        <!-- Style tab -->
-        <div v-if="currentTab === 'style'" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div v-for="style in jerseyStyles" :key="style.name"
-              class="border rounded-lg p-2 cursor-pointer hover:border-blue-500"
-              :class="{ 'border-blue-500': selectedStyle.name === style.name }" @click="selectStyle(style)">
-              <img :src="style.image" :alt="style.name" class="w-full h-32 object-cover rounded-lg mb-2" />
-              <p class="text-center font-medium">{{ style.name }}</p>
-            </div>
+  <div :class="['edit-panel', { expanded: isPanelExpanded }]" :style="{
+    marginLeft: isMobile ? '0px' : 'calc(var(--default-padding)*2 + 2rem)',
+    marginRight: isPanelExpanded ? 'var(--default-padding)' : '0px',
+  }">
+    <h2 class="text-xl font-medium font-mono text-gray-800 p-4" v-html="getTabTitle(currentTab)"></h2>
+    <div :class="['tab-content', { 'p-4': isPanelExpanded }]">
+      <!-- Style tab -->
+      <div v-if="currentTab === 'style'" class="space-y-4">
+        <p class="tab-title">select a style</p>
+        <div class="grid grid-cols-2 gap-4 rounded-lg p-2 bg-gray-100">
+          <div v-for="style in jerseyStyles" :key="style.name"
+            class="border rounded-lg p-2 cursor-pointer hover:border-blue-500"
+            :class="{ 'border-blue-500': selectedStyle.name === style.name }" @click="selectStyle(style)">
+            <img :src="style.image" :alt="style.name" class="w-full h-32 object-cover rounded-lg mb-2" />
+            <p class="text-center font-medium">{{ style.name }}</p>
           </div>
         </div>
+      </div>
 
-        <!-- Text tab -->
-        <div v-if="currentTab === 'text'" class="space-y-4">
-          <div v-if="texts.length === 0" class="text-center py-8 text-gray-500">
-            <font-awesome-icon :icon="['fas', 'info-circle']" class="text-3xl mb-2"/>
-            <p>No text items added yet. Click 'Add Text' to get started!</p>
+      <!-- Text tab -->
+      <div v-if="currentTab === 'text'" class="space-y-4">
+        <div class="tab-title flex items-center justify-between">
+          <p>Add or edit a text</p>
+          <font-awesome-icon class="cursor-pointer" @click="addText" :icon="['fas', 'plus']" />
+        </div>
+        <div v-if="texts.length === 0" class="text-center py-8 text-gray-500">
+          <font-awesome-icon :icon="['fas', 'info-circle']" class="text-3xl mb-2" />
+          <p>No text items added yet. Click 'Add Text' to get started!</p>
+        </div>
+        <div v-else v-for="(text, index) in texts" :key="index" class="text-card p-4 bg-gray-100 rounded-lg">
+          <div class="text-header">
+            <div class="flex items-center">
+              <button @click="removeText(index)" class="mr-6 text-gray-500">
+                <font-awesome-icon :icon="['fas', 'circle-minus']" />
+              </button>
+              <font-awesome-icon class="mr-2" :icon="['fas', 'comments']" />
+              <span class="font-medium mr-2">{{ text.content || 'New Text' }}</span>
+            </div>
+            <div class="cursor-pointer px-2">
+              <font-awesome-icon :icon="['fas', text.isExpanded ? 'chevron-up' : 'chevron-down']"
+                @click="text.isExpanded = !text.isExpanded" />
+            </div>
           </div>
-          <div v-else v-for="(text, index) in texts" :key="index" class="text-card">
-            <button @click="removeText(index)" class="delete-button">
-              <font-awesome-icon :icon="['fas', 'times']" />
-            </button>
-            <input v-model="text.content" type="text" :placeholder="'Text ' + (index + 1)"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2" />
-            <div class="mt-2">
-              <label class="text-sm font-medium text-gray-700">Font:</label>
+
+          <div class="text-content" :class="{ 'expanded': text.isExpanded }">
+            <div class="flex items-center justify-between">
+              <label>Content</label>
+              <input v-model="text.content" type="text" :placeholder="'Text ' + (index + 1)"
+                class="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2" />
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+              <label>Font</label>
               <select v-model="text.fontType"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                <option v-for="font in fontOptions" :key="font.fontType" :value="font.fontType">{{ font.fontType }}</option>
+                class="p-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                <option v-for="font in fontOptions" :key="font.fontType" :value="font.fontType">{{ font.fontType }}
+                </option>
               </select>
             </div>
-            <div class="mt-2">
-              <label class="text-sm font-medium text-gray-700">Font Size:</label>
+            <div class="mt-4 flex items-center justify-between">
+              <label>Size</label>
               <input v-model="text.fontSize" type="number" min="1" max="100"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+                class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
             </div>
-            <div v-for="(border, borderIndex) in text.borders" :key="borderIndex" class="mt-2">
-              <label class="text-sm font-medium text-gray-700">{{ border.type }} Border:</label>
-              <div class="flex items-center space-x-2">
-                <input v-model="border.color" type="color" class="color-input" />
-                <input v-model="border.strokeWidth" type="range" min="1" max="100"
-                  class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" />
-                <span class="text-sm text-gray-600">{{
-                  border.strokeWidth
-                }}</span>
+            <div v-for="(border, borderIndex) in text.borders" :key="borderIndex" class="mt-2 mb-4">
+              <label class="font-bold">{{ border.type[0].toUpperCase() + border.type.slice(1) }} Border</label>
+              <div class="flex items-center justify-between">
+                <label>Color</label>
+                <div class="flex items-center gap-1">
+                  <input v-model="border.color" type="color" class="color-input w-6 h-6 rounded-lg" />
+                  <input class="w-20 rounded-md p-1" type="text" v-model="border.color" />
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-2">
+                <label>Width</label>
+                <div class="flex items-center gap-1">
+                  <input v-model="border.strokeWidth" type="range" min="1" max="100"
+                    class="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer" />
+                  <input type="number" min="1" max="100" class="w-10 rounded-md p-1" v-model="border.strokeWidth" />
+                </div>
               </div>
             </div>
           </div>
-          <button @click="addText"
-            class="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Add Text
-          </button>
         </div>
+      </div>
 
-        <!-- Logo tab -->
-        <div v-if="currentTab === 'logo'" class="space-y-4">
-          <div class="flex flex-wrap gap-4">
-            <div v-for="(logo, index) in logos" :key="logo.id" class="relative">
-              <img :src="logo.url" alt="Uploaded logo" class="w-24 h-24 object-contain border rounded" />
-              <button @click="removeLogo(index)"
-                class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
-                <font-awesome-icon :icon="['fas', 'times']" />
-              </button>
-            </div>
-          </div>
-          <div class="mt-4">
-            <input type="file" @change="uploadLogo" accept="image/*" class="hidden" id="logo-upload" />
-            <label for="logo-upload"
-              class="cursor-pointer inline-flex items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-gray-400 hover:text-gray-500">
-              <font-awesome-icon :icon="['fas', 'plus']" class="text-3xl" />
-            </label>
+      <!-- Logo tab -->
+      <div v-if="currentTab === 'logo'" class="space-y-4">
+        <div class="tab-title flex items-center justify-between">
+          <p>Add a logo</p>
+          <input type="file" @change="uploadLogo" accept="image/*" class="hidden" id="logo-upload" />
+          <label for="logo-upload"
+            class="cursor-pointer inline-flex items-center justify-center hover:text-gray-500">
+            <font-awesome-icon :icon="['fas', 'plus']" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-4 p-2 bg-gray-100 rounded-lg">
+          <div v-for="(logo, index) in logos" :key="logo.id" class="relative">
+            <img :src="logo.url" alt="logo" class="w-20 h-20 object-contain border-2 rounded" />
+            <button @click="removeLogo(index)"
+              class="absolute top-1 right-1 bg-red-500 text-red-100 rounded-full shadow-lg w-4 h-4 flex items-center justify-center">
+              <font-awesome-icon :icon="['fas', 'circle-minus']" />
+            </button>
           </div>
         </div>
+      </div>
 
-        <!-- Color tab -->
-        <div v-if="currentTab === 'color'" class="space-y-4">
-          <div v-for="(part, index) in jerseyParts" :key="index" class="border-b pb-4">
-            <label :for="'color-' + index" class="block text-sm font-medium text-gray-700">{{ part.name }}</label>
-            <div class="mt-2 flex flex-wrap gap-2">
-              <button v-for="color in colors" :key="color" @click="setPart(index, color)" :class="['w-8 h-8 rounded-full',
-                `${part.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`]"
-                :style="{ backgroundColor: color }"></button>
-            </div>
+      <!-- Color tab -->
+      <div v-if="currentTab === 'color'" class="space-y-4">
+        <div class="tab-title flex items-center justify-between">
+          <p>Edit cloth color</p>
+        </div>
+        <div v-for="(part, index) in jerseyParts" :key="index" class="border-b p-4 bg-gray-100 rounded-lg">
+          <label :for="'color-' + index" class="block mb-4 text-sm font-medium text-gray-700">{{ part.name }}</label>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <button v-for="color in colors" :key="color" @click="setPart(index, color)" :class="['w-8 h-8 rounded-full',
+              `${part.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`]"
+              :style="{ backgroundColor: color }"></button>
           </div>
         </div>
       </div>
@@ -98,56 +124,41 @@
   </div>
 
   <!-- Preview area -->
-  <div ref="glCanvas" class="preview-area" :style="{
+  <div :style="{
     width: isPanelExpanded && !isMobile ? 'calc(100% - 350px)' : '100%',
-  }"></div>
+  }" class="preview-area px-4 bg-gray-200">
+    <div class="flex items-center justify-between w-full">
+      <font-awesome-icon :icon="['fas', 'wand-magic-sparkles']" class="ml-4 text-md" />
+      <h2 class="text-xl font-medium font-mono text-gray-800 p-4">
+        3D Preview
+      </h2>
+      <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="mr-4 text-md cursor-pointer" />
+    </div>
+    <div ref="glCanvas" style="width: calc(100% - 4rem); max-height: calc(100% - 5rem);"></div>
+    <div class="absolute top-1/2 transform -translate-y-1/2 right-7">
+      <div>
+        <font-awesome-icon :icon="['fas', 'save']" class="text-xl cursor-pointer text-blue-500" @click="saveDesign" />
+      </div>
+      <div class="mt-4">
+        <font-awesome-icon :icon="['fas', 'ellipsis']" class="text-xl cursor-pointer text-gray-500" />
+      </div>
+    </div>
+  </div>
 
   <!-- Tab buttons -->
-  <div class="tab-buttons bg-gray-200">
-    <button @click="togglePanel" :class="[
-      'tab-button focus:outline-none',
-      isPanelExpanded
-        ? 'bg-blue-500 text-white'
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-    ]">
-      <font-awesome-icon :icon="[
-        'fas',
-        isPanelExpanded ? 'fa-chevron-left' : 'fa-chevron-right',
-      ]" />
-    </button>
-    <button title="Choose Jersey Style" @click="setTab('style')" :class="[
-      'tab-button focus:outline-none',
-      currentTab === 'style'
-        ? 'bg-blue-500 text-white'
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-    ]">
-      <font-awesome-icon :icon="['fas', 'tshirt']" />
-    </button>
-    <button @click="setTab('text')" title="Edit Colors" :class="[
-      'tab-button focus:outline-none',
-      currentTab === 'text'
-        ? 'bg-blue-500 text-white'
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-    ]">
-      <font-awesome-icon :icon="['fas', 'font']" />
-    </button>
-    <button @click="setTab('logo')" title="Edit Logo" :class="[
-      'tab-button focus:outline-none',
-      currentTab === 'logo'
-        ? 'bg-blue-500 text-white'
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-    ]">
-      <font-awesome-icon :icon="['fas', 'image']" />
-    </button>
-    <button @click="setTab('color')" title="Edit color" :class="[
-      'tab-button focus:outline-none',
-      currentTab === 'color'
-        ? 'bg-blue-500 text-white'
-        : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
-    ]">
-      <font-awesome-icon :icon="['fas', 'palette']" />
-    </button>
+  <div class="tab-buttons">
+    <TabButton :active="isPanelExpanded" :icon="['fas', isPanelExpanded ? 'fa-chevron-left' : 'fa-chevron-right']"
+      @click="togglePanel" />
+    <TabButton title="Choose Jersey Style" :active="currentTab === 'style'" :icon="['fas', 'tshirt']"
+      @click="() => setTab('style')" />
+      <TabButton title="Edit color" :active="currentTab === 'color'" :icon="['fas', 'palette']"
+        @click="() => setTab('color')" />
+    <TabButton title="Edit Colors" :active="currentTab === 'text'" :icon="['fas', 'font']"
+      @click="() => setTab('text')" />
+    <TabButton title="Edit Logo" :active="currentTab === 'logo'" :icon="['fas', 'image']"
+      @click="() => setTab('logo')" />
   </div>
+  <ActionButtons />
 </template>
 
 <script setup>
@@ -155,6 +166,10 @@ import { ref, computed, onMounted, nextTick, watch, watchEffect } from 'vue';
 import { World } from '../world/world';
 import { StyleManager, fontOptions } from '../utils/StyleManager'
 import _ from 'lodash'
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import TabButton from '../section/TabButton.vue';
+import ActionButtons from './DashBoard/ActionButtons.vue';
 
 let world = null;
 const currentTab = ref('text');
@@ -203,7 +218,7 @@ const addText = () => {
     ],
   }
   const newTextId = world.svgEditor.svgCanvas.diyAddText(null, 2340, 5020, newTextOptions)
-  if(!newTextId) {
+  if (!newTextId) {
     alert('系统出错！！！')
     return;
   }
@@ -292,11 +307,11 @@ const initVarFromTexture = async (jersy) => {
 // svgEditor delete event
 const svgEditorDelete = (e, target) => {
   const { id, type } = target
-  if(type === 'text'){
+  if (type === 'text') {
     const i = texts.value.findIndex(v => v.id === id);
     texts.value.splice(i, 1);
   }
-  if(type === 'image'){
+  if (type === 'image') {
     const i = logos.value.findIndex(v => v.id === id);
     logos.value.splice(i, 1);
   }
@@ -320,7 +335,7 @@ const monitorTextChange = _.debounce((newTexts, oldTexts) => {
   newTexts.forEach((newText, index) => {
     const oldText = oldTexts[index] || {};
 
-    // 检查第一层属性变化
+    // 检查第一层属性化
     if (newText.content !== oldText.content) {
       console.log(`texts[${index}].content changed:`, newText.content);
       world.svgEditor.svgCanvas.updateDiyText(newText.id, 'content', newText)
@@ -359,34 +374,62 @@ watch(
   { deep: true }
 );
 
+
+
+const downloadZIP = () => {
+  const mainSvgCtn = document.querySelector('#mainSvgCtn');
+  if (!mainSvgCtn) return;
+  const zip = new JSZip();
+
+  // 添加第一个 SVG 文件
+  const svgContent1 = window.world.svgEditor.svgCanvas.getSvgString();
+  zip.file("editSvg.svg", svgContent1);
+
+  // 添加第二个 SVG 文件
+  const svgContent2 = mainSvgCtn.outerHTML;
+  zip.file("mainSvg.svg", svgContent2);
+
+  // 生成 ZIP 文件并触发下载
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    saveAs(content, "svgs.zip"); // 使用 FileSaver.js 触发下载
+  });
+}
+const saveDesign = () => {
+  if (!window.world.svgEditor.svgCanvas) return;
+  downloadZIP();
+};
+
 </script>
 
 <style>
 .edit-panel {
   width: 0;
   transition: all 0.3s ease;
+  max-height: 100%;
+}
+
+.tab-content {
+  max-height: calc(100% - 4.75rem);
   overflow-y: auto;
-  max-height: calc(100vh - 80px);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
 
-.edit-panel::-webkit-scrollbar {
-  width: 6px;
+.tab-content::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
 }
 
-.edit-panel::-webkit-scrollbar-track {
+.tab-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.edit-panel::-webkit-scrollbar-thumb {
+.tab-content::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 3px;
 }
 
 .edit-panel.expanded {
-  width: 350px;
-  margin-left: 40px;
+  width: 25%;
+  margin-left: 90px;
 }
 
 .preview-area {
@@ -394,113 +437,55 @@ watch(
   transition: all 0.3s ease;
   min-width: 60%;
   position: relative;
+  border-radius: 3rem;
   /* height: 100%; */
 }
 
 .tab-buttons {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: var(--default-padding);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 0.5rem;
   z-index: 10;
 }
 
-.tab-button {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+.text-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+}
+
+.text-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.text-content.expanded {
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in;
+}
+
+.toggle-arrow {
+  transition: transform 0.3s ease;
+}
+
+.toggle-arrow.expanded {
   transform: rotate(180deg);
-  transition: all 0.3s ease;
-  padding: 1rem 0.5rem;
-}
-
-.text-card {
-  background-color: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 2rem 1rem;
-  margin-bottom: 1rem;
-  position: relative;
-  border: 1px solid #e5e7eb;
-}
-
-.delete-button {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #ef4444;
-  cursor: pointer;
-}
-
-.color-input {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  width: 2rem;
-  height: 2rem;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.color-input::-webkit-color-swatch {
-  border-radius: 50%;
-  border: 2px solid #e5e7eb;
-}
-
-.color-input::-moz-color-swatch {
-  border-radius: 50%;
-  border: 2px solid #e5e7eb;
 }
 
 .tab-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #4a5568;
-  margin-bottom: 1rem;
+  position: sticky;
+  top: -1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #4a5568;
+  background: white;
+  /* Compensate for parent padding */
   display: flex;
   align-items: center;
-}
-.tab-title i {
-  margin-right: 0.5rem;
-  font-size: 1.25rem;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-  }
-
-  .edit-panel {
-    width: 100%;
-    height: 0;
-  }
-
-  .edit-panel.expanded {
-    width: 100%;
-    height: auto;
-  }
-
-  .preview-area {
-    width: 100% !important;
-  }
-
-  .tab-buttons {
-    position: static;
-    flex-direction: row;
-    margin: 1rem 0;
-  }
-
-  .tab-button {
-    writing-mode: horizontal-tb;
-    transform: none;
-    padding: 0.5rem 1rem;
-  }
+  justify-content: space-between;
 }
 </style>

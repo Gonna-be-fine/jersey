@@ -1,8 +1,8 @@
 <template>
   <div id="ctn" v-cloak style="z-index: 99;">
-    <Header></Header>
-    <div class="container mx-auto px-2 relative" style="padding-top: 80px;">
-      <div class="main-content bg-white rounded-lg shadow-lg">
+    <!-- <Header></Header> -->
+    <div class="container mx-auto relative h-full">
+      <div class="main-content bg-white rounded-lg shadow-lg h-full bg-gray-50">
         <DashBoard />
       </div>
     </div>
@@ -21,8 +21,8 @@ import DashBoard from './components/DashBoard.vue';
   position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   opacity: 0;
 }

@@ -17,7 +17,7 @@ export class World extends EventDispatch {
     this.height = this.glDom.clientHeight || window.innerHeight;
     this.init();
     this.importModel();
-    this.initGui();
+    // this.initGui();
   }
 
   /**
