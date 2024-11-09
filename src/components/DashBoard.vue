@@ -1,175 +1,197 @@
 <template>
-  <!-- Edit panel -->
-  <div :class="['edit-panel', { expanded: isPanelExpanded }]" :style="{
-    marginLeft: isMobile ? '0px' : 'calc(var(--default-padding)*2 + 2rem)',
-    marginRight: isPanelExpanded ? 'var(--default-padding)' : '0px',
-  }">
-    <h2 class="text-xl font-medium font-mono text-gray-800 p-4" v-html="getTabTitle(currentTab)"></h2>
-    <div :class="['tab-content', { 'p-4': isPanelExpanded }]">
-      <!-- Style tab -->
-      <div v-if="currentTab === 'style'" class="space-y-4">
-        <p class="tab-title">select a style</p>
-        <div class="grid grid-cols-2 gap-4 rounded-lg p-2 bg-gray-100">
-          <div v-for="style in jerseyStyles" :key="style.name"
-            class="rounded-lg p-2 cursor-pointer hover:border-blue-500"
-            :class="{ 'selected-primary': selectedStyle.name === style.name }" @click="selectStyle(style)">
-            <img :src="style.image" :alt="style.name" class="w-full h-32 object-cover rounded-lg mb-2" />
-            <p class="text-center font-medium">{{ style.name }}</p>
+  <div class="dashboard-container">
+    <!-- Edit panel -->
+    <div :class="['edit-panel', { expanded: isPanelExpanded }]" :style="{
+      marginLeft: isMobile ? '0' : 'calc(var(--default-padding)*2 + 2rem)',
+      marginRight: isPanelExpanded ? 'var(--default-padding)' : '0',
+    }">
+      <h2 class="text-xl font-medium font-mono text-gray-800 p-4" v-html="getTabTitle(currentTab)"></h2>
+      <div :class="['tab-content', { 'p-4': isPanelExpanded }]">
+        <!-- Style tab -->
+        <div v-if="currentTab === 'style'" class="space-y-4">
+          <p class="tab-title">select a style</p>
+          <div class="grid grid-cols-2 gap-4 rounded-lg p-2 bg-gray-100">
+            <div v-for="style in jerseyStyles" :key="style.name"
+              class="rounded-lg p-2 cursor-pointer hover:border-blue-500"
+              :class="{ 'selected-primary': selectedStyle.name === style.name }" @click="selectStyle(style)">
+              <img :src="style.image" :alt="style.name" class="w-full h-32 object-cover rounded-lg mb-2" />
+              <p class="text-center font-medium">{{ style.name }}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Text tab -->
-      <div v-if="currentTab === 'text'" class="space-y-4">
-        <div class="tab-title flex items-center justify-between">
-          <p>Add or edit a text</p>
-          <font-awesome-icon class="cursor-pointer" @click="addText" :icon="['fas', 'plus']" />
+        <!-- Text tab -->
+        <div v-if="currentTab === 'text'" class="space-y-4">
+          <div class="tab-title flex items-center justify-between">
+            <p>Add or edit a text</p>
+            <font-awesome-icon class="cursor-pointer" @click="addText" :icon="['fas', 'plus']" />
+          </div>
+          <div v-if="texts.length === 0" class="text-center py-8 text-gray-500">
+            <font-awesome-icon :icon="['fas', 'info-circle']" class="text-3xl mb-2" />
+            <p>No text items added yet. Click 'Add Text' to get started!</p>
+          </div>
+          <div v-else v-for="(text, index) in texts" :key="index"
+            :class="{ 'selected-primary': editingElement.id === text.id }" class="text-card p-4 bg-gray-100 rounded-lg">
+            <div class="text-header" @click="selectElement(text.id)">
+              <div class="flex items-center">
+                <button @click.stop="removeText(index)" class="mr-6 text-gray-500">
+                  <font-awesome-icon :icon="['fas', 'circle-minus']" />
+                </button>
+                <font-awesome-icon class="mr-2" :icon="['fas', 'comments']" />
+                <span class="font-medium mr-2">{{ text.content || 'New Text' }}</span>
+              </div>
+              <div class="cursor-pointer px-2">
+                <font-awesome-icon :icon="['fas', text.isExpanded ? 'chevron-up' : 'chevron-down']"
+                  @click="text.isExpanded = !text.isExpanded" />
+              </div>
+            </div>
+
+            <div class="text-content" :class="{ 'expanded': text.isExpanded }">
+              <div class="flex items-center justify-between">
+                <label>Content</label>
+                <input v-model="text.content" type="text" :placeholder="'Text ' + (index + 1)"
+                  class="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2" />
+              </div>
+              <div class="mt-4 flex items-center justify-between">
+                <label>Font</label>
+                <select v-model="text.fontType"
+                  class="p-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  <option v-for="font in fontOptions" :key="font.fontType" :value="font.fontType">{{ font.fontType }}
+                  </option>
+                </select>
+              </div>
+              <div class="mt-4 flex items-center justify-between">
+                <label>Size</label>
+                <input v-model="text.fontSize" type="number" min="1" max="100"
+                  class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
+              </div>
+              <div v-for="(border, borderIndex) in text.borders" :key="borderIndex" class="mt-2 mb-4">
+                <label class="font-bold">{{ border.type[0].toUpperCase() + border.type.slice(1) }} Border</label>
+                <div class="flex items-center justify-between">
+                  <label>Color</label>
+                  <div class="flex items-center gap-1">
+                    <input v-model="border.color" type="color" class="color-input w-6 h-6 rounded-lg" />
+                    <input class="w-20 rounded-md p-1" type="text" v-model="border.color" />
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                  <label>Width</label>
+                  <div class="flex items-center gap-1">
+                    <input v-model="border.strokeWidth" type="range" min="1" max="100"
+                      class="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer" />
+                    <input type="number" min="1" max="100" class="w-10 rounded-md p-1" v-model="border.strokeWidth" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div v-if="texts.length === 0" class="text-center py-8 text-gray-500">
-          <font-awesome-icon :icon="['fas', 'info-circle']" class="text-3xl mb-2" />
-          <p>No text items added yet. Click 'Add Text' to get started!</p>
-        </div>
-        <div v-else v-for="(text, index) in texts" :key="index"
-          :class="{ 'selected-primary': editingElement.id === text.id }" class="text-card p-4 bg-gray-100 rounded-lg">
-          <div class="text-header" @click="selectElement(text.id)">
-            <div class="flex items-center">
-              <button @click.stop="removeText(index)" class="mr-6 text-gray-500">
+
+        <!-- Logo tab -->
+        <div v-if="currentTab === 'logo'" class="space-y-4">
+          <div class="tab-title flex items-center justify-between">
+            <p>Add a logo</p>
+            <input type="file" @change="uploadLogo" accept="image/*" class="hidden" id="logo-upload" />
+            <label for="logo-upload"
+              class="cursor-pointer inline-flex items-center justify-center hover:text-gray-500">
+              <font-awesome-icon :icon="['fas', 'plus']" />
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-4 p-2 bg-gray-100 rounded-lg">
+            <div v-for="(logo, index) in logos" :key="logo.id" class="relative" :class="{ 'selected-primary': editingElement.id === logo.id }">
+              <img :src="logo.url" alt="logo" class="w-20 h-20 object-contain border-2 rounded" @click="selectElement(logo.id)" />
+              <button @click="removeLogo(index)"
+                class="absolute top-1 right-1 bg-red-500 text-red-100 rounded-full shadow-lg w-4 h-4 flex items-center justify-center">
                 <font-awesome-icon :icon="['fas', 'circle-minus']" />
               </button>
-              <font-awesome-icon class="mr-2" :icon="['fas', 'comments']" />
-              <span class="font-medium mr-2">{{ text.content || 'New Text' }}</span>
-            </div>
-            <div class="cursor-pointer px-2">
-              <font-awesome-icon :icon="['fas', text.isExpanded ? 'chevron-up' : 'chevron-down']"
-                @click="text.isExpanded = !text.isExpanded" />
-            </div>
-          </div>
-
-          <div class="text-content" :class="{ 'expanded': text.isExpanded }">
-            <div class="flex items-center justify-between">
-              <label>Content</label>
-              <input v-model="text.content" type="text" :placeholder="'Text ' + (index + 1)"
-                class="block rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2" />
-            </div>
-            <div class="mt-4 flex items-center justify-between">
-              <label>Font</label>
-              <select v-model="text.fontType"
-                class="p-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                <option v-for="font in fontOptions" :key="font.fontType" :value="font.fontType">{{ font.fontType }}
-                </option>
-              </select>
-            </div>
-            <div class="mt-4 flex items-center justify-between">
-              <label>Size</label>
-              <input v-model="text.fontSize" type="number" min="1" max="100"
-                class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2">
-            </div>
-            <div v-for="(border, borderIndex) in text.borders" :key="borderIndex" class="mt-2 mb-4">
-              <label class="font-bold">{{ border.type[0].toUpperCase() + border.type.slice(1) }} Border</label>
-              <div class="flex items-center justify-between">
-                <label>Color</label>
-                <div class="flex items-center gap-1">
-                  <input v-model="border.color" type="color" class="color-input w-6 h-6 rounded-lg" />
-                  <input class="w-20 rounded-md p-1" type="text" v-model="border.color" />
-                </div>
-              </div>
-              <div class="flex items-center justify-between mt-2">
-                <label>Width</label>
-                <div class="flex items-center gap-1">
-                  <input v-model="border.strokeWidth" type="range" min="1" max="100"
-                    class="w-24 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer" />
-                  <input type="number" min="1" max="100" class="w-10 rounded-md p-1" v-model="border.strokeWidth" />
-                </div>
-              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Logo tab -->
-      <div v-if="currentTab === 'logo'" class="space-y-4">
-        <div class="tab-title flex items-center justify-between">
-          <p>Add a logo</p>
-          <input type="file" @change="uploadLogo" accept="image/*" class="hidden" id="logo-upload" />
-          <label for="logo-upload"
-            class="cursor-pointer inline-flex items-center justify-center hover:text-gray-500">
-            <font-awesome-icon :icon="['fas', 'plus']" />
-          </label>
-        </div>
-        <div class="flex flex-wrap gap-4 p-2 bg-gray-100 rounded-lg">
-          <div v-for="(logo, index) in logos" :key="logo.id" class="relative" :class="{ 'selected-primary': editingElement.id === logo.id }">
-            <img :src="logo.url" alt="logo" class="w-20 h-20 object-contain border-2 rounded" @click="selectElement(logo.id)" />
-            <button @click="removeLogo(index)"
-              class="absolute top-1 right-1 bg-red-500 text-red-100 rounded-full shadow-lg w-4 h-4 flex items-center justify-center">
-              <font-awesome-icon :icon="['fas', 'circle-minus']" />
-            </button>
+        <!-- Color tab -->
+        <div v-if="currentTab === 'color'" class="space-y-4">
+          <div class="tab-title flex items-center justify-between">
+            <p>Edit cloth color</p>
           </div>
-        </div>
-      </div>
-
-      <!-- Color tab -->
-      <div v-if="currentTab === 'color'" class="space-y-4">
-        <div class="tab-title flex items-center justify-between">
-          <p>Edit cloth color</p>
-        </div>
-        <div v-for="(part, index) in jerseyParts" :key="index" class="border-b p-4 bg-gray-100 rounded-lg">
-          <label :for="'color-' + index" class="block mb-4 text-sm font-medium text-gray-700">{{ part.name }}</label>
-          <div class="mt-2 flex flex-wrap gap-2">
-            <button v-for="color in colors" :key="color" @click="setPart(index, color)" :class="['w-8 h-8 rounded-full',
-              `${part.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`]"
-              :style="{ backgroundColor: color }"></button>
+          <div v-for="(part, index) in jerseyParts" :key="index" class="border-b p-4 bg-gray-100 rounded-lg">
+            <label :for="'color-' + index" class="block mb-4 text-sm font-medium text-gray-700">{{ part.name }}</label>
+            <div class="mt-2 flex flex-wrap gap-2">
+              <button v-for="color in colors" :key="color" @click="setPart(index, color)" :class="['w-8 h-8 rounded-full',
+                `${part.color === color ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`]"
+                :style="{ backgroundColor: color }"></button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Preview area -->
-  <div :style="{
-    width: isPanelExpanded && !isMobile ? 'calc(100% - 350px)' : '100%',
-  }" class="preview-area px-4 bg-gray-200">
-    <div class="flex items-center justify-between w-full">
-      <font-awesome-icon :icon="['fas', 'wand-magic-sparkles']" class="ml-4 text-md" />
-      <h2 class="text-xl font-medium font-mono text-gray-800 p-4">
-        3D Preview
-      </h2>
-      <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="mr-4 text-md cursor-pointer" />
+    <!-- Preview area -->
+    <div :class="['preview-area px-4 bg-gray-200', { 'mobile': isMobile }]" :style="{
+      width: isPanelExpanded && !isMobile ? 'calc(100% - 350px)' : '100%',
+    }">
+      <div class="flex items-center justify-between w-full">
+        <font-awesome-icon :icon="['fas', 'wand-magic-sparkles']" class="ml-4 text-md" />
+        <h2 class="text-xl font-medium font-mono text-gray-800 p-4">
+          3D Preview
+        </h2>
+        <font-awesome-icon :icon="['fas', 'sign-out-alt']" class="mr-4 text-md cursor-pointer" />
+      </div>
+      <div ref="glCanvas" style="width: calc(100% - 4rem); max-height: calc(100% - 5rem);"></div>
+      <div class="absolute top-1/2 transform -translate-y-1/2 right-7">
+        <div class="mt-4" @click="cancelEdit()">
+          <font-awesome-icon :icon="['fas', 'reply']" class="text-xl cursor-pointer text-gray-500" />
+        </div>
+        <div class="mt-4" @click="restoreCancel()">
+          <font-awesome-icon :icon="['fas', 'share']" class="text-xl cursor-pointer text-gray-500" />
+        </div>
+        <div class="mt-4">
+          <font-awesome-icon :icon="['fas', 'save']" class="text-xl cursor-pointer text-blue-500" @click="saveDesign" />
+        </div>
+        <div class="mt-4">
+          <font-awesome-icon :icon="['fas', 'ellipsis']" class="text-xl cursor-pointer text-gray-500" />
+        </div>
+      </div>
     </div>
-    <div ref="glCanvas" style="width: calc(100% - 4rem); max-height: calc(100% - 5rem);"></div>
-    <div class="absolute top-1/2 transform -translate-y-1/2 right-7">
-      <div class="mt-4" @click="cancelEdit()">
-        <font-awesome-icon :icon="['fas', 'reply']" class="text-xl cursor-pointer text-gray-500" />
-      </div>
-      <div class="mt-4" @click="restoreCancel()">
-        <font-awesome-icon :icon="['fas', 'share']" class="text-xl cursor-pointer text-gray-500" />
-      </div>
-      <div class="mt-4">
-        <font-awesome-icon :icon="['fas', 'save']" class="text-xl cursor-pointer text-blue-500" @click="saveDesign" />
-      </div>
-      <div class="mt-4">
-        <font-awesome-icon :icon="['fas', 'ellipsis']" class="text-xl cursor-pointer text-gray-500" />
-      </div>
-    </div>
-  </div>
 
-  <!-- Tab buttons -->
-  <div class="tab-buttons">
-    <TabButton :active="isPanelExpanded" :icon="['fas', isPanelExpanded ? 'fa-chevron-left' : 'fa-chevron-right']"
-      @click="togglePanel" />
-    <TabButton title="Choose Jersey Style" :active="currentTab === 'style'" :icon="['fas', 'tshirt']"
-      @click="() => setTab('style')" />
-      <TabButton title="Edit color" :active="currentTab === 'color'" :icon="['fas', 'palette']"
-        @click="() => setTab('color')" />
-    <TabButton title="Edit Colors" :active="currentTab === 'text'" :icon="['fas', 'font']"
-      @click="() => setTab('text')" />
-    <TabButton title="Edit Logo" :active="currentTab === 'logo'" :icon="['fas', 'image']"
-      @click="() => setTab('logo')" />
+    <!-- Tab buttons -->
+    <div :class="['tab-buttons', { 'mobile': isMobile }]">
+      <TabButton 
+        class="hide-on-mobile"
+        :active="isPanelExpanded" 
+        :icon="['fas', isPanelExpanded ? 'fa-chevron-left' : 'fa-chevron-right']"
+        @click="togglePanel" 
+      />
+      <TabButton 
+        title="Choose Jersey Style" 
+        :active="currentTab === 'style'" 
+        :icon="['fas', 'tshirt']"
+        @click="() => setTab('style')" 
+      />
+      <TabButton 
+        title="Edit color" 
+        :active="currentTab === 'color'" 
+        :icon="['fas', 'palette']"
+        @click="() => setTab('color')" 
+      />
+      <TabButton 
+        title="Edit Colors" 
+        :active="currentTab === 'text'" 
+        :icon="['fas', 'font']"
+        @click="() => setTab('text')" 
+      />
+      <TabButton 
+        title="Edit Logo" 
+        :active="currentTab === 'logo'" 
+        :icon="['fas', 'image']"
+        @click="() => setTab('logo')" 
+      />
+    </div>
+    <ActionButtons />
   </div>
-  <ActionButtons />
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick, watch, watchEffect } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { World } from '../world/world';
 import { StyleManager, fontOptions } from '../utils/StyleManager'
 import _ from 'lodash'
@@ -180,7 +202,7 @@ import ActionButtons from './DashBoard/ActionButtons.vue';
 
 let world = null;
 const currentTab = ref('text');
-const isPanelExpanded = ref(false);
+const isPanelExpanded = ref(true);
 
 const texts = ref([]);
 const logos = ref([]);
@@ -199,6 +221,7 @@ const jerseyStyles = [
 const selectedStyle = ref(jerseyStyles[1]);
 const editingElement = ref({});
 const isMobile = computed(() => {
+  
   return window.innerWidth <= 768;
 });
 
@@ -442,12 +465,107 @@ const restoreCancel = () => {
 </script>
 
 <style>
+/* 基础容器样式 */
+.dashboard-container {
+  display: flex;
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
 .edit-panel {
   width: 0;
   transition: all 0.3s ease;
-  max-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
+.edit-panel.expanded {
+  width: 25%;
+  min-width: 300px;
+  margin-left: 90px;
+}
+
+.preview-area {
+  flex: 1;
+  transition: all 0.3s ease;
+  position: relative;
+  border-radius: 3rem;
+  height: 100%;
+}
+
+.tab-buttons {
+  position: absolute;
+  left: var(--default-padding);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+/* 移动端适配样式 */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .edit-panel {
+    width: 100% !important;
+    margin: 0 !important;
+    order: 2;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .edit-panel.expanded {
+    width: 100% !important;
+    min-width: unset;
+    margin: 0 !important;
+  }
+
+  .preview-area {
+    width: 100% !important;
+    order: 1;
+    height: 50vh;
+    min-height: 400px;
+  }
+
+  .preview-area.mobile {
+    border-radius: 0;
+    padding: 1rem !important;
+  }
+
+  .tab-buttons.mobile {
+    position: fixed;
+    left: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    transform: none;
+    flex-direction: row;
+    justify-content: space-around;
+    background: white;
+    padding: 0.5rem;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+
+  .tab-content {
+    max-height: none !important;
+    padding-bottom: 60px; /* 为底部固定导航留出空间 */
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* 保持其他原有样式不变 */
 .tab-content {
   max-height: calc(100% - 4.75rem);
   overflow-y: auto;
@@ -465,31 +583,6 @@ const restoreCancel = () => {
 .tab-content::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 3px;
-}
-
-.edit-panel.expanded {
-  width: 25%;
-  margin-left: 90px;
-}
-
-.preview-area {
-  flex: 1;
-  transition: all 0.3s ease;
-  min-width: 60%;
-  position: relative;
-  border-radius: 3rem;
-  /* height: 100%; */
-}
-
-.tab-buttons {
-  position: absolute;
-  left: var(--default-padding);
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  z-index: 10;
 }
 
 .text-header {
