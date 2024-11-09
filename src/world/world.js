@@ -217,11 +217,10 @@ export class World extends EventDispatch {
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('/lib/draco/');
     loader.setDRACOLoader(dracoLoader);
-
     loader.load('/data/cloth.glb', (gltf) => {
       this.cloth = gltf.scene;
       this.cloth.position.y = -1.2;
-
+      console.log(gltf.scene);
       this.scene.add(gltf.scene);
       this.cloth.name = 'cloth';
       this.cloth.children.forEach((v) => {
@@ -300,11 +299,11 @@ export class World extends EventDispatch {
       if (!v.isMesh) return;
       v.geometry.setAttribute(
         'uvUnified',
-        v.geometry.attributes.uv2 || v.geometry.attributes.uv
+        v.geometry.attributes.uv1 || v.geometry.attributes.uv
       );
       v.geometry.setAttribute(
         'uvUnifiedEditor',
-        v.geometry.attributes.uv2 || v.geometry.attributes.uv
+        v.geometry.attributes.uv1 || v.geometry.attributes.uv
       );
       if (!this.firstMesh) {
         this.firstMesh = v;

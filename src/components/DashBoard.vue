@@ -11,8 +11,8 @@
         <p class="tab-title">select a style</p>
         <div class="grid grid-cols-2 gap-4 rounded-lg p-2 bg-gray-100">
           <div v-for="style in jerseyStyles" :key="style.name"
-            class="border rounded-lg p-2 cursor-pointer hover:border-blue-500"
-            :class="{ 'border-blue-500': selectedStyle.name === style.name }" @click="selectStyle(style)">
+            class="rounded-lg p-2 cursor-pointer hover:border-blue-500"
+            :class="{ 'selected-primary': selectedStyle.name === style.name }" @click="selectStyle(style)">
             <img :src="style.image" :alt="style.name" class="w-full h-32 object-cover rounded-lg mb-2" />
             <p class="text-center font-medium">{{ style.name }}</p>
           </div>
@@ -29,10 +29,11 @@
           <font-awesome-icon :icon="['fas', 'info-circle']" class="text-3xl mb-2" />
           <p>No text items added yet. Click 'Add Text' to get started!</p>
         </div>
-        <div v-else v-for="(text, index) in texts" :key="index" class="text-card p-4 bg-gray-100 rounded-lg">
-          <div class="text-header">
+        <div v-else v-for="(text, index) in texts" :key="index"
+          :class="{ 'selected-primary': editingElement.id === text.id }" class="text-card p-4 bg-gray-100 rounded-lg">
+          <div class="text-header" @click="selectElement(text.id)">
             <div class="flex items-center">
-              <button @click="removeText(index)" class="mr-6 text-gray-500">
+              <button @click.stop="removeText(index)" class="mr-6 text-gray-500">
                 <font-awesome-icon :icon="['fas', 'circle-minus']" />
               </button>
               <font-awesome-icon class="mr-2" :icon="['fas', 'comments']" />
@@ -96,8 +97,8 @@
           </label>
         </div>
         <div class="flex flex-wrap gap-4 p-2 bg-gray-100 rounded-lg">
-          <div v-for="(logo, index) in logos" :key="logo.id" class="relative">
-            <img :src="logo.url" alt="logo" class="w-20 h-20 object-contain border-2 rounded" />
+          <div v-for="(logo, index) in logos" :key="logo.id" class="relative" :class="{ 'selected-primary': editingElement.id === logo.id }">
+            <img :src="logo.url" alt="logo" class="w-20 h-20 object-contain border-2 rounded" @click="selectElement(logo.id)" />
             <button @click="removeLogo(index)"
               class="absolute top-1 right-1 bg-red-500 text-red-100 rounded-full shadow-lg w-4 h-4 flex items-center justify-center">
               <font-awesome-icon :icon="['fas', 'circle-minus']" />
@@ -136,7 +137,13 @@
     </div>
     <div ref="glCanvas" style="width: calc(100% - 4rem); max-height: calc(100% - 5rem);"></div>
     <div class="absolute top-1/2 transform -translate-y-1/2 right-7">
-      <div>
+      <div class="mt-4" @click="cancelEdit()">
+        <font-awesome-icon :icon="['fas', 'reply']" class="text-xl cursor-pointer text-gray-500" />
+      </div>
+      <div class="mt-4" @click="restoreCancel()">
+        <font-awesome-icon :icon="['fas', 'share']" class="text-xl cursor-pointer text-gray-500" />
+      </div>
+      <div class="mt-4">
         <font-awesome-icon :icon="['fas', 'save']" class="text-xl cursor-pointer text-blue-500" @click="saveDesign" />
       </div>
       <div class="mt-4">
@@ -190,7 +197,7 @@ const jerseyStyles = [
   { name: 'Fusion', image: '/images/4.png', svg: '/texture/style/style2.svg' },
 ];
 const selectedStyle = ref(jerseyStyles[1]);
-
+const editingElement = ref({});
 const isMobile = computed(() => {
   return window.innerWidth <= 768;
 });
@@ -325,6 +332,10 @@ onMounted(() => {
     world.svgEditor.svgCanvas.bind('delete', (e, target) => {
       svgEditorDelete(e, target);
     })
+    world.svgEditor.svgCanvas.bind('selected', (e, target) => {
+      console.log(e, target);
+      viewSelectionToGui(target);
+    })
   })
 });
 
@@ -374,8 +385,6 @@ watch(
   { deep: true }
 );
 
-
-
 const downloadZIP = () => {
   const mainSvgCtn = document.querySelector('#mainSvgCtn');
   if (!mainSvgCtn) return;
@@ -399,6 +408,37 @@ const saveDesign = () => {
   downloadZIP();
 };
 
+const selectElement = (id) => {
+  if (window.world) {
+    const el = window.world.svgEditor.svgCanvas.getElement(id);
+    if (el) {
+      window.world.svgEditor.svgCanvas.selectOnly([el], true);
+    }
+  }
+}
+const viewSelectionToGui = (elList) => {
+  if(!elList || elList.length === 0) {
+    editingElement.value = {};
+    return;
+  }
+  const el = elList[0];
+  if(el.nodeName === 'image') {
+    editingElement.value.type = 'image';
+  }else if(el.nodeName === 'text') {
+    editingElement.value.type = 'text';
+  }
+  editingElement.value.id = el.id;
+}
+const cancelEdit = () => {
+  if(window.world && world.svgEditor.svgCanvas) {
+    world.svgEditor.svgCanvas.undoMgr.undo();
+  }
+}
+const restoreCancel = () => {
+  if(window.world && world.svgEditor.svgCanvas) {
+    world.svgEditor.svgCanvas.undoMgr.redo();
+  }
+}
 </script>
 
 <style>
@@ -487,5 +527,8 @@ const saveDesign = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.editingStyle {
+  border: 2px solid blue;
 }
 </style>

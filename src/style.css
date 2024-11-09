@@ -18,6 +18,13 @@ html, body{
   position: absolute;
 }
 
+.noEvent {
+  pointer-events: none !important;
+}
+
+.selected-primary {
+  @apply bg-blue-50 border-blue-500 border-2;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
