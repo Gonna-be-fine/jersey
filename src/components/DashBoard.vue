@@ -557,6 +557,7 @@ const restoreCancel = () => {
 
   .tab-content {
     max-height: none !important;
+    background-color: #fff;
     padding-bottom: 60px; /* 为底部固定导航留出空间 */
   }
 

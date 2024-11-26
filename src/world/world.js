@@ -4,10 +4,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decalManager';
 import EventDispatch from '../utils/EventDispatch';
-import { Lights } from './config';
+import { Lights, Lights1 } from './config';
 import { ClothTexture } from './ClothTexture';
 import { SvgEditor } from './SvgEditor';
 import { throttle } from 'lodash';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { KTX2Loader } from 'three/examples/jsm/Addons.js';
 
 export class World extends EventDispatch {
   constructor(dom) {
@@ -216,8 +218,12 @@ export class World extends EventDispatch {
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('/lib/draco/');
+    const ktxLoader = new KTX2Loader();			
+    ktxLoader.setTranscoderPath( '/lib/basis/' ).detectSupport( this.renderer );
+    loader.setMeshoptDecoder(MeshoptDecoder);
     loader.setDRACOLoader(dracoLoader);
-    loader.load('/data/cloth.glb', (gltf) => {
+    loader.setKTX2Loader(ktxLoader);
+    loader.load('/data/basket_0_Mens-Player-Jersey-V-Neck-Collar-v4.glb', (gltf) => {
       this.cloth = gltf.scene;
       this.cloth.position.y = -1.2;
       console.log(gltf.scene);
@@ -289,7 +295,7 @@ export class World extends EventDispatch {
    */
   pathMesh() {
     this.mainTextManager = new ClothTexture({
-      img: '/texture/style/style1.svg',
+      img: '/texture/style/men_basketball/1.svg',
     });
     this.editTextManager = new ClothTexture({ img: '/texture/style/text.svg' });
 
