@@ -12,11 +12,12 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { KTX2Loader } from 'three/examples/jsm/Addons.js';
 
 export class World extends EventDispatch {
-  constructor(dom) {
+  constructor(dom, options) {
     super();
     this.glDom = dom;
     this.width = this.glDom.clientWidth || window.innerWidth;
     this.height = this.glDom.clientHeight || window.innerHeight;
+    this.options = options;
     this.init();
     this.importModel();
     // this.initGui();
@@ -36,7 +37,7 @@ export class World extends EventDispatch {
     }else{
       this.glDom.appendChild(this.renderer.domElement)
     }
-    this.renderer.setClearColor('#757575');
+    this.renderer.setClearColor(this.options.backgroundColor || '#1e1e1e');
     // 颜色矫正
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
@@ -51,11 +52,15 @@ export class World extends EventDispatch {
       1000
     );
     // this.camera.position.z = 120;
-    this.camera.position.set(
-      -0.009666748088079795,
-      0.1459023549040876,
-      0.6137803763666974
-    );
+    if(this.options.cameraPosition) {
+      this.camera.position.copy(this.options.cameraPosition);
+    }else{
+      this.camera.position.set(
+        -0.009666748088079795,
+        0.1459023549040876,
+        0.6137803763666974
+      );
+    }
     this.camera.target = new THREE.Vector3();
 
     // controls
@@ -223,9 +228,11 @@ export class World extends EventDispatch {
     loader.setMeshoptDecoder(MeshoptDecoder);
     loader.setDRACOLoader(dracoLoader);
     loader.setKTX2Loader(ktxLoader);
-    loader.load('/data/basket_0_Mens-Player-Jersey-V-Neck-Collar-v4.glb', (gltf) => {
+    loader.load(this.options.model.url, (gltf) => {
       this.cloth = gltf.scene;
-      this.cloth.position.y = -1.2;
+      if(this.options.model.position) {
+        this.cloth.position.copy(this.options.model.position);
+      }
       console.log(gltf.scene);
       this.scene.add(gltf.scene);
       this.cloth.name = 'cloth';
@@ -260,7 +267,7 @@ export class World extends EventDispatch {
 
   mutateEditor() {
     this.svgEditor = new SvgEditor(this);
-    this.svgEditor.setSvgString({ url: '/texture/style/editText.svg' });
+    this.svgEditor.setSvgString({ url: this.options.texture.edit });
 
     // 观察器的配置（需要观察什么变动）
     const config = { attributes: true, childList: true, subtree: true };
@@ -295,9 +302,9 @@ export class World extends EventDispatch {
    */
   pathMesh() {
     this.mainTextManager = new ClothTexture({
-      img: '/texture/style/men_basketball/1.svg',
+      img: this.options.texture.main,
     });
-    this.editTextManager = new ClothTexture({ img: '/texture/style/text.svg' });
+    this.editTextManager = new ClothTexture({ img: this.options.texture.edit });
 
     this.mutateEditor();
 

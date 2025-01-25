@@ -1,146 +1,394 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pt-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- 面包屑导航 -->
-      <nav class="flex mb-8" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-4">
-          <li>
-            <router-link to="/" class="text-gray-500 hover:text-gray-700">Home</router-link>
-          </li>
-          <li>
-            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-            </svg>
-          </li>
-          <li>
-            <span class="text-gray-700">{{ categoryName }}</span>
-          </li>
-        </ol>
-      </nav>
-
+  <div class="overflow-y-auto text-gray-600">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 h-full">
+      <!-- <div ref="glCanvas" class="w-full h-full absolute top-0 left-0 z-10"></div> -->
+      <div ref="glCanvas" class="w-full h-[50vh] md:h-[70vh] lg:h-full lg:col-span-8 z-10 border-container"></div>
       <!-- 设计工具区域 -->
-      <div class="bg-white rounded-lg shadow-sm p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">
-          Design Your {{ categoryName }}
-        </h1>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- 预览区域 -->
-          <div class="bg-gray-100 rounded-lg p-4 aspect-square flex items-center justify-center">
-            <div class="text-gray-500">
-              Preview Area
-            </div>
-          </div>
-
-          <!-- 设计选项 -->
-          <div class="space-y-6">
-            <!-- 尺寸选择 -->
-            <div>
-              <h3 class="text-lg font-medium text-gray-900 mb-3">Size</h3>
-              <div class="grid grid-cols-3 gap-3">
-                <button 
-                  v-for="size in sizes" 
-                  :key="size"
-                  class="border rounded-md py-2 px-4 text-sm font-medium hover:bg-gray-50"
-                  :class="selectedSize === size ? 'border-primary text-primary' : 'border-gray-300 text-gray-700'"
-                  @click="selectedSize = size"
-                >
-                  {{ size }}
-                </button>
-              </div>
-            </div>
-
-            <!-- 颜色选择 -->
-            <div>
-              <h3 class="text-lg font-medium text-gray-900 mb-3">Color</h3>
-              <div class="flex flex-wrap gap-3">
-                <button 
-                  v-for="color in colors" 
-                  :key="color.name"
-                  class="w-8 h-8 rounded-full border-2 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  :class="selectedColor === color.name ? 'ring-2 ring-primary ring-offset-2' : 'border-gray-300'"
-                  :style="{ backgroundColor: color.value }"
-                  @click="selectedColor = color.name"
-                ></button>
-              </div>
-            </div>
-
-            <!-- 上传设计 -->
-            <div>
-              <h3 class="text-lg font-medium text-gray-900 mb-3">Upload Design</h3>
-              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <input type="file" class="hidden" ref="fileInput" @change="handleFileUpload">
-                <button 
-                  @click="$refs.fileInput.click()"
-                  class="text-primary hover:text-secondary font-medium"
-                >
-                  Click to upload or drag and drop
-                </button>
-              </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="flex space-x-4">
-              <button 
-                @click="saveDesign"
-                class="flex-1 bg-primary hover:bg-secondary text-white py-3 rounded-lg transition-colors duration-300"
-              >
-                Save Design
-              </button>
-              <button 
-                @click="addToCart"
-                class="flex-1 bg-primary hover:bg-secondary text-white py-3 rounded-lg transition-colors duration-300"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
+      <div class="lg:h-screen md:h-[70vh] lg:col-span-4 flex flex-col border-container">
+        <div class="flex items-center justify-center p-2">
+          <!-- <TabButton
+            title="Choose Jersey Style"
+            type="款式"
+            :active="currentTab === 'style'" 
+            :icon="['fas', 'tshirt']"
+            @click="() => setTab('style')" 
+          /> -->
+          <TabButton 
+            title="Edit color" 
+            type="颜色"
+            :active="currentTab === 'color'" 
+            :icon="['fas', 'palette']"
+            @click="() => setTab('color')" 
+          />
+          <TabButton 
+            title="Edit text" 
+            type="文字"
+            :active="currentTab === 'text'" 
+            :icon="['fas', 'font']"
+            @click="() => setTab('text')" 
+          />
+          <TabButton 
+            title="Edit Logo" 
+            type="Logo"
+            :active="currentTab === 'logo'" 
+            :icon="['fas', 'image']"
+            @click="() => setTab('logo')" 
+          />
+          <TabButton 
+            title="Submit An Order" 
+            type="订单"
+            :active="currentTab === 'order'" 
+            :icon="['fas', 'cart-plus']"
+            @click="() => setTab('order')" 
+          />
+        </div>
+        <div class="flex-1 overflow-y-auto pt-2 px-8 pb-6 text-gray-400 text-sm">
+          <StyleTab v-if="currentTab === 'style'" :jerseyStyles="jerseyStyles" :selectedStyle="selectedStyle"
+            @selectStyle="selectStyle" />
+          <TextTab v-if="currentTab === 'text'" :texts="texts" @addText="addText" @removeText="removeText"
+            @selectElement="selectElement" />
+          <LogoTab v-if="currentTab === 'logo'" :logos="logos" @uploadLogo="uploadLogo" @removeLogo="removeLogo" />
+          <ColorTab v-if="currentTab === 'color'" :jerseyParts="jerseyParts" :colors="colors" @setPart="setPart" />
+          <OrderTab v-if="currentTab === 'order'" :players="players" @addPlayer="addPlayer" @removePlayer="removePlayer" />
         </div>
       </div>
     </div>
   </div>
+  <div id="svgCtn"></div>
+  <div id="mainSvgCtn" style="pointer-events: none;"></div>
 </template>
 
-<script>
-export default {
-  name: 'Design',
-  props: {
-    categoryId: {
-      type: String,
-      required: true
-    }
-  },
-  data() {
-    return {
-      categoryName: 'Basketball',  // 这里应该根据categoryId获取实际名称
-      selectedSize: 'M',
-      selectedColor: 'White',
-      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      colors: [
-        { name: 'White', value: '#ffffff' },
-        { name: 'Black', value: '#000000' },
-        { name: 'Red', value: '#ef4444' },
-        { name: 'Blue', value: '#3b82f6' },
-        { name: 'Green', value: '#10b981' }
-      ]
-    }
-  },
-  methods: {
-    handleFileUpload(event) {
-      const file = event.target.files[0]
-      if (file) {
-        // 处理文件上传逻辑
-        console.log('Uploaded file:', file)
-      }
-    },
-    saveDesign() {
-      // 保存设计逻辑
-      console.log('Saving design...')
-    },
-    addToCart() {
-      // 添加到购物车逻辑
-      console.log('Adding to cart...')
+<script setup>
+import { ref, computed, onMounted, watch, provide } from 'vue';
+import { useRoute } from 'vue-router';
+import StyleTab from '../components/Tabs/StyleTab.vue';
+import TextTab from '../components/Tabs/TextTab.vue';
+import LogoTab from '../components/Tabs/LogoTab.vue';
+import ColorTab from '../components/Tabs/ColorTab.vue';
+import OrderTab from '../components/Tabs/OrderTab.vue';
+import { World } from '../world/world';
+import { StyleManager, fontOptions } from '../utils/StyleManager';
+import _ from 'lodash';
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import TabButton from '../section/TabButton.vue';
+
+// Props
+const props = defineProps({
+  categoryId: {
+    type: String,
+    required: true
+  }
+});
+
+// 状态定义
+const route = useRoute();
+const glCanvas = ref(null);
+const currentTab = ref('text');
+const categoryName = ref('Basketball');
+
+// 数据定义
+const colors = ref([
+  { name: 'White', value: '#ffffff' },
+  { name: 'Black', value: '#000000' },
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Green', value: '#10b981' }
+]);
+
+// 3D世界相关
+let world = null;
+
+// 设计相关数据
+const texts = ref([]);
+const logos = ref([]);
+const jerseyParts = ref([]);
+const players = ref([{
+  name: '',
+  number: '',
+  size: ''
+}]);
+
+// 当前编辑状态
+const editingElement = ref({});
+provide('editingElement', editingElement);
+
+// 样式相关
+const jerseyStyles = [
+  { name: 'Striker', image: '/images/1.png', svg: '/texture/style/style3.svg' },
+  { name: 'Codex', image: '/images/2.png', svg: '/texture/style/style1.svg' },
+  { name: 'Maverick', image: '/images/3.png', svg: '/texture/style/style4.svg' },
+  { name: 'Fusion', image: '/images/4.png', svg: '/texture/style/style2.svg' },
+];
+const selectedStyle = ref(jerseyStyles[1]);
+
+let mainSvgEle = null;
+const styleManager = new StyleManager();
+
+const getDataForRender = async () => {
+  const { categoryId } = route.params;
+  if(!categoryId) return;
+  const data = await fetch(`/dataset/${categoryId}.json`)
+    .then((res) => res.json());
+  return data;
+}
+
+const setTab = (tab) => {
+  currentTab.value = tab;
+  // isPanelExpanded.value = true;
+};
+
+// SVG相关方法
+const initVarFromTexture = async (jersy) => {
+  const svgText = await fetch(jersy.svg).then((res) => res.text());
+  const parser = new DOMParser();
+  const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+  mainSvgEle = svgDoc.documentElement;
+  const mainSvgCtn = document.querySelector('#mainSvgCtn');
+  while (mainSvgCtn.firstChild) {
+    mainSvgCtn.removeChild(mainSvgCtn.firstChild);
+  }
+  mainSvgCtn.appendChild(mainSvgEle);
+
+  // 获取颜色列表
+  const { styles, color } = styleManager.getColorByType(jersy.name, mainSvgEle);
+  jerseyParts.value = styles;
+  colors.value = color;
+
+  // 获取图片列表
+  const imageList = styleManager.getFontList(window.world.svgEditor.svgCanvas.svgroot);
+  logos.value = imageList;
+
+  // 获取文字列表
+  const textList = styleManager.getTextList(window.world.svgEditor.svgCanvas.svgroot);
+  texts.value = textList;
+};
+
+// 订单相关方法
+const addPlayer = () => {
+  players.value.push({
+    name: '',
+    number: '',
+    size: '',
+  });
+}
+const removePlayer = (index) => {
+ players.value.splice(index, 1); 
+}
+const previewPlayer = (index) => {
+  
+}
+
+// 文本相关方法
+const addText = () => {
+  const defaultFont = 'NotoSans';
+  const newTextOptions = {
+    content: 'NEW NAME',
+    fontType: defaultFont,
+    fontFile: fontOptions.find(v => v.fontType === defaultFont).fontFile,
+    fontSize: 100,
+    borders: [
+      { type: 'outside', color: '#000000', strokeWidth: 16 },
+      { type: 'middle', color: '#ffffff', strokeWidth: 12 },
+      { type: 'inside', color: '#000000', strokeWidth: 6 },
+    ],
+  };
+  const newTextId = world.svgEditor.svgCanvas.diyAddText(null, 2340, 5020, newTextOptions);
+  if (!newTextId) {
+    alert('系统出错！！！');
+    return;
+  }
+  newTextOptions.id = newTextId;
+  texts.value.unshift(newTextOptions);
+};
+
+const removeText = (index) => {
+  world.svgEditor.svgCanvas.deleteElementById(texts.value[index].id);
+  texts.value.splice(index, 1);
+};
+
+// Logo相关方法
+const uploadLogo = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const url = e.target.result;
+      const id = window.world.svgEditor.addLogo(url);
+      logos.value.push({ id, url });
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+const removeLogo = (index) => {
+  const logo = logos.value[index];
+  world.svgEditor.removeLogo(logo.id);
+  logos.value.splice(index, 1);
+};
+
+// 样式相关方法
+const selectStyle = async (style) => {
+  await initVarFromTexture(style);
+  world.mainTextManager.svgToTexture(mainSvgEle.outerHTML);
+  selectedStyle.value = style;
+};
+
+const setPart = (index, color) => {
+  jerseyParts.value[index].color = color;
+  styleManager.setColorByType(
+    selectedStyle.value.name,
+    mainSvgEle,
+    jerseyParts.value[index].type,
+    color
+  );
+  world.mainTextManager.svgToTexture(mainSvgEle.outerHTML);
+};
+
+// 元素选择相关
+const selectElement = (id) => {
+  if (window.world) {
+    const el = window.world.svgEditor.svgCanvas.getElement(id);
+    if (el) {
+      window.world.svgEditor.svgCanvas.selectOnly([el], true);
     }
   }
+};
+
+const viewSelectionToGui = (elList) => {
+  if (!elList || elList.length === 0) {
+    editingElement.value = {};
+    return;
+  }
+  const el = elList[0];
+  editingElement.value = {
+    type: el.nodeName === 'image' ? 'image' : 'text',
+    id: el.id
+  };
+};
+
+// 保存设计
+const downloadZIP = () => {
+  const mainSvgCtn = document.querySelector('#mainSvgCtn');
+  if (!mainSvgCtn) return;
+  const zip = new JSZip();
+
+  const svgContent1 = window.world.svgEditor.svgCanvas.getSvgString();
+  zip.file("editSvg.svg", svgContent1);
+
+  const svgContent2 = mainSvgCtn.outerHTML;
+  zip.file("mainSvg.svg", svgContent2);
+
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    saveAs(content, "svgs.zip");
+  });
+};
+
+const saveDesign = () => {
+  if (!window.world.svgEditor.svgCanvas) return;
+  downloadZIP();
+};
+
+// 监听文本变化
+const monitorTextChange = _.debounce((newTexts, oldTexts) => {
+  if (newTexts.length !== oldTexts.length) return;
+
+  newTexts.forEach((newText, index) => {
+    const oldText = oldTexts[index] || {};
+
+    if (newText.content !== oldText.content) {
+      world.svgEditor.svgCanvas.updateDiyText(newText.id, 'content', newText);
+      return;
+    }
+
+    if (newText.fontType !== oldText.fontType) {
+      newText.fontFile = fontOptions.find(v => v.fontType === newText.fontType).fontFile;
+      world.svgEditor.svgCanvas.updateDiyText(newText.id, 'fontType', newText);
+      return;
+    }
+
+    if (newText.fontSize !== oldText.fontSize) {
+      world.svgEditor.svgCanvas.updateDiyText(newText.id, 'fontSize', newText);
+      return;
+    }
+
+    newText.borders.forEach((newBorder, borderIndex) => {
+      const oldBorder = oldText.borders?.[borderIndex] || {};
+      if (newBorder.type !== oldBorder.type ||
+        newBorder.color !== oldBorder.color ||
+        newBorder.strokeWidth !== oldBorder.strokeWidth) {
+        world.svgEditor.svgCanvas.updateDiyText(newText.id, 'borders', newText);
+        return;
+      }
+    });
+  });
+}, 600);
+
+watch(
+  () => _.cloneDeep(texts.value),
+  (newTexts, oldTexts) => {
+    monitorTextChange(newTexts, oldTexts);
+  },
+  { deep: true }
+);
+
+// 生命周期钩子
+onMounted(async () => {
+  const data = await getDataForRender();
+  if (data) {
+    world = new World(glCanvas.value, data);
+    window.world = world;
+
+    world.addEventListener('load_editSvg', () => {
+      initVarFromTexture(selectedStyle.value);
+      world.svgEditor.svgCanvas.bind('delete', (e, target) => {
+        const { id, type } = target;
+        if (type === 'text') {
+          const i = texts.value.findIndex(v => v.id === id);
+          texts.value.splice(i, 1);
+        }
+        if (type === 'image') {
+          const i = logos.value.findIndex(v => v.id === id);
+          logos.value.splice(i, 1);
+        }
+      });
+      world.svgEditor.svgCanvas.bind('selected', (e, target) => {
+        viewSelectionToGui(target);
+      });
+    });
+  }
+});
+</script>
+
+<style scoped>
+#svgCtn,
+#mainSvgCtn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 0;
+  z-index: -1;
 }
-</script> 
+
+/* 自定义滚动条样式 */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
+}
+
+.border-container {
+  @apply bg-darker border border-solid border-dark rounded-md;
+}
+
+</style>

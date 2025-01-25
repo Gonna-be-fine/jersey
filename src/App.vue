@@ -1,20 +1,22 @@
 <template>
   <div class="app">
     <template v-if="!isDesignPage">
-      <header class="header">
-        <nav class="main-nav container">
-          <div class="nav-left">
-            <router-link to="/" class="logo">Drinkify</router-link>
+      <header class="fixed top-0 left-0 w-full z-50 bg-background/90 backdrop-blur-lg">
+        <nav class="container mx-auto flex justify-between items-center py-4 px-8">
+          <div class="flex items-center gap-12">
+            <router-link to="/" class="font-primary text-2xl font-bold text-text">
+              Drinkify
+            </router-link>
             
-            <div class="nav-links">
-              <router-link to="/">首页</router-link>
-              <router-link to="/blog">博客</router-link>
-              <router-link to="/shop">商店</router-link>
-              <router-link to="/patterns">模板</router-link>
+            <div class="flex gap-8">
+              <router-link to="/" class="nav-link">首页</router-link>
+              <router-link to="/blog" class="nav-link">博客</router-link>
+              <router-link to="/shop" class="nav-link">商店</router-link>
+              <router-link to="/patterns" class="nav-link">模板</router-link>
             </div>
           </div>
 
-          <div class="nav-right">
+          <div class="flex items-center gap-6">
             <search-bar />
             <user-account />
             <shopping-cart />
@@ -22,7 +24,7 @@
         </nav>
       </header>
 
-      <main class="main-with-header">
+      <main class="mt-20 min-h-[calc(100vh-5rem)]">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
@@ -33,15 +35,15 @@
       <footer-component />
     </template>
 
-    <template v-else>
-      <main class="main-fullscreen">
+    <!-- <template v-else>
+      <main class="min-h-screen">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
       </main>
-    </template>
+    </template> -->
   </div>
 </template>
 
@@ -61,108 +63,43 @@ export default {
   },
   computed: {
     isDesignPage() {
-      return this.$route.name === 'Design'
+      return this.$route.name === 'Design1'
     }
   }
 }
 </script>
 
 <style scoped>
-.container {
-  max-width: var(--container-width);
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
+.nav-link {
+  @apply text-text font-medium py-2 relative;
 }
 
-.main-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
+.nav-link::after {
+  @apply content-[''] absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300;
 }
 
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
-}
-
-.logo {
-  font-family: var(--font-primary);
-  font-size: 1.5rem;
-  color: var(--text-color);
-  font-weight: bold;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2rem;
-}
-
-.nav-links a {
-  color: var(--text-color);
-  font-weight: 500;
-  padding: 0.5rem 0;
-  position: relative;
-}
-
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-color);
-  transition: width 0.3s;
-}
-
-.nav-links a:hover::after,
-.nav-links a.router-link-active::after {
-  width: 100%;
-}
-
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.main-with-header {
-  margin-top: 80px; /* header height */
-  min-height: calc(100vh - 80px);
-}
-
-.main-fullscreen {
-  min-height: 100vh;
+.nav-link:hover::after,
+.router-link-active::after {
+  @apply w-full;
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  @apply transition-opacity duration-300;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
+  @apply opacity-0;
 }
 
 @media (max-width: 768px) {
   .nav-links {
-    display: none;
+    @apply hidden;
   }
   
   .nav-right {
-    gap: 1rem;
+    @apply gap-4;
   }
 }
 </style> 

@@ -1,0 +1,20 @@
+export const style = {
+  backgroundColor: '#1e1e1e',
+  cameraPosition: {
+    x: -0.009666748088079795,
+    y: 0.1459023549040876,
+    z: 0.6137803763666974
+  },
+  model: {
+    url: '/data/basket_0_Mens-Player-Jersey-V-Neck-Collar-v4.glb',
+    position: {
+      x: 0,
+      y: -1.2,
+      z: 0
+    },
+  },
+  texture: {
+    main: '/texture/style/men_basketball/1.svg',
+    edit: '/texture/style/editText.svg',
+  },
+}

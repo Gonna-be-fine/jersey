@@ -27,7 +27,7 @@
             <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
             <!-- <div class="mt-3 flex items-center"></div> -->
             <button @click="openDesignPanel"
-                    class="mt-4 w-full bg-primary hover:bg-secondary text-white py-2 px-4 rounded transition-colors duration-300 flex items-center justify-center">
+                    class="mt-4 w-full bg-primary hover:bg- text-white py-2 px-4 rounded transition-colors duration-300 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" 
                    class="h-5 w-5 mr-2" 
                    fill="none" 
@@ -52,62 +52,55 @@
   />
 </template>
 
-<script>
+<script setup>
+import { ref } from 'vue'
 import SectionTitle from './SectionTitle.vue'
 import DesignPanel from './DesignPanel.vue'
+import { useRouter } from 'vue-router';
 
-export default {
-  name: 'BestSellerSection',
-  components: {
-    SectionTitle,
-    DesignPanel
+const router = useRouter();
+
+// 定义数据
+const products = ref([
+  {
+    id: 1,
+    name: 'Basketball Design',
+    image: '/images/strawberry.png',
+    onSale: false
   },
-  data() {
-    return {
-      products: [
-        {
-          id: 1,
-          name: 'Basketball Design',
-          image: '/images/strawberry.png',
-          onSale: false
-        },
-        {
-          id: 2,
-          name: 'Football Design',
-          image: '/images/strawberry.png',
-          onSale: false
-        },
-        {
-          id: 3,
-          name: 'T-shirt Design',
-          image: '/images/strawberry.png',
-          onSale: false
-        },
-        {
-          id: 4,
-          name: 'Shirt Design',
-          image: '/images/strawberry.png',
-          onSale: false
-        }
-        // ... 更多产品
-      ],
-      isDesignPanelOpen: false
-    }
+  {
+    id: 2,
+    name: 'Football Design',
+    image: '/images/strawberry.png',
+    onSale: false
   },
-  methods: {
-    openDesignPanel() {
-      this.isDesignPanelOpen = true
-    },
-    handleCategorySelect(category) {
-      console.log('Selected category:', category)
-      // 处理分类选择逻辑
-      this.isDesignPanelOpen = false
-    }
+  {
+    id: 3,
+    name: 'T-shirt Design',
+    image: '/images/strawberry.png',
+    onSale: false
+  },
+  {
+    id: 4,
+    name: 'Shirt Design',
+    image: '/images/strawberry.png',
+    onSale: false
   }
-}
-</script>
+])
 
-<script setup>
+const isDesignPanelOpen = ref(false)
+
+// 定义方法
+const openDesignPanel = () => {
+  router.push('/products');
+}
+
+const handleCategorySelect = (category) => {
+  console.log('Selected category:', category)
+  // 处理分类选择逻辑
+  isDesignPanelOpen.value = false
+}
+
 // 定义Tailwind的主题颜色
 const colors = {
   primary: '#847630',

@@ -92,7 +92,7 @@ export default {
 .footer-title {
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
-  color: var(--text-white);
+  color: var(--primary-color);
 }
 
 .footer-nav ul {

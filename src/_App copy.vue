@@ -1,5 +1,5 @@
 <template>
-  <div id="ctn" v-cloak style="z-index: 2;">
+  <div id="ctn" v-cloak style="z-index: 99;">
     <div class="w-full mx-auto relative h-full">
       <div class="main-content bg-white shadow-lg h-full bg-gray-50">
         <DashBoard />

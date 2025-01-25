@@ -21,9 +21,11 @@ html, body{
 .noEvent {
   pointer-events: none !important;
 }
-
+.font-ellipsis {
+  @apply text-ellipsis overflow-hidden whitespace-nowrap;
+}
 .selected-primary {
-  @apply bg-blue-50 border-blue-500 border-2;
+  @apply bg-blue-50 border-blue-500 border;
 }
 @tailwind base;
 @tailwind components;
@@ -32,7 +34,7 @@ html, body{
 :root {
   --primary-color: #847630;
   --secondary-color: #ff7c31;
-  /* --text-color: #ffffff; */
+  --text-color: #ffffff;
   --text-dark: #2c3e50;
   --text-light: #666666;
   --background-color: #000000;

@@ -27170,10 +27170,21 @@ const updateDiyText = (id, key, value) => {
     }
   } else {
     const text = svgCanvas$7.getElement(id);
-    const box = text.getBBox();
+    const x = text.x.baseVal[0].value;
+    const y = text.y.baseVal[0].value;
     selected.remove();
-    text.remove();
-    svgCanvas$7.diyAddText(text, box.x + box.width / 2, box.y + box.height / 2, value);
+    // text.remove()
+    // const { x, y } = getElementXY(text)
+    // svgCanvas.diyAddText(text, x, y, value, true)
+    text.setAttribute('font-size', value.fontSize);
+    text.setAttribute('fontType', value.fontType);
+    text.textContent = value.content;
+    svgCanvas$7.text2Path(x, y, text.id, value, text);
+    svgCanvas$7.selectOnly([text]);
+    svgCanvas$7.selectorManager.requestSelector(svgCanvas$7.selectedElements[0]).showGrips(true);
+    // // 增加文字记录
+    // svgCanvas.addCommandToHistory(new InsertElementCommand(newText))
+    // svgCanvas.call('changed', [text])
   }
 };
 const loadFontType = (type, file) => {
@@ -27209,14 +27220,19 @@ const text2Path = async (x, y, id, textOptions, originText) => {
   const bbox = path.getBoundingBox();
   // 计算宽度
   const width = bbox.x2 - bbox.x1;
+  const height = bbox.y2 - bbox.y1;
   // 平移路径，将其 x 移动到 width / 2
   const translateX = -width / 2 - (bbox.x1 - x);
+  const translateY = height / 2;
   path.commands.forEach(cmd => {
     if (cmd.x !== undefined) cmd.x += translateX;
     if (cmd.x1 !== undefined) cmd.x1 += translateX; // 控制点1 (贝塞尔曲线)
     if (cmd.x2 !== undefined) cmd.x2 += translateX; // 控制点2 (贝塞尔曲线)
+    if (cmd.y !== undefined) cmd.y += translateY;
+    if (cmd.y1 !== undefined) cmd.y1 += translateY; // 控制点1 (贝塞尔曲线)
+    if (cmd.y2 !== undefined) cmd.y2 += translateY; // 控制点2 (贝塞尔曲线)
   });
-  const svgPathData = path.toPathData(10); // 转换为 SVG 路径数据
+  const svgPathData = path.toPathData(50); // 转换为 SVG 路径数据
 
   // 获取 SVG 容器
   const svgElement = svgCanvas$7.addSVGElementsFromJson({
@@ -27264,21 +27280,22 @@ const text2Path = async (x, y, id, textOptions, originText) => {
   if (originText && originText.transform.baseVal.numberOfItems > 0) {
     // 获取源元素和目标元素的transform列表
     let sourceTransformList = originText.transform.baseVal;
-    const textEl = svgCanvas$7.getElement(id);
-    let textPathTransformList = textEl.transform.baseVal;
+    svgCanvas$7.getElement(id);
+
+    // let textPathTransformList = textEl.transform.baseVal;
     let textElTransformList = svgElement.transform.baseVal;
 
     // 清空目标元素的transform列表
-    textPathTransformList.clear();
+    // textPathTransformList.clear();
     textElTransformList.clear();
 
     // 遍历源元素的transform，将其复制到目标元素
     for (let i = 0; i < sourceTransformList.numberOfItems; i++) {
       let transform = sourceTransformList.getItem(i);
-      if (transform.type === 1) {
-        transform.setTranslate(0, 0);
-      }
-      textPathTransformList.appendItem(transform);
+      // if(transform.type === 1){
+      //   transform.setTranslate(0, 0);
+      // }
+      // textPathTransformList.appendItem(transform);
       textElTransformList.appendItem(transform);
     }
   }
@@ -27309,8 +27326,9 @@ const diyAddText = (originText, x, y, textOptions) => {
       'font-family': svgCanvas$7.getCurText('font_family'),
       'text-anchor': 'middle',
       'xml:space': 'preserve',
+      'dominant-baseline': 'middle',
       fontType,
-      opacity: 0
+      opacity: 1
     }
   });
   newText.textContent = content;
@@ -30851,7 +30869,7 @@ const svgWhiteList_ = {
   svg: ['clip-path', 'clip-rule', 'enable-background', 'filter', 'height', 'mask', 'preserveAspectRatio', 'requiredFeatures', 'systemLanguage', 'version', 'viewBox', 'width', 'x', 'xmlns', 'xmlns:se', 'xmlns:xlink', 'xmlns:oi', 'oi:animations', 'y', 'stroke-linejoin', 'fill-rule', 'aria-label', 'stroke-width', 'fill-rule', 'xml:space'],
   switch: ['requiredFeatures', 'systemLanguage'],
   symbol: ['fill', 'fill-opacity', 'fill-rule', 'filter', 'font-family', 'font-size', 'font-style', 'font-weight', 'opacity', 'overflow', 'preserveAspectRatio', 'requiredFeatures', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'viewBox', 'width', 'height'],
-  text: ['fontType', 'clip-path', 'clip-rule', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'font-family', 'font-size', 'font-style', 'font-weight', 'mask', 'opacity', 'requiredFeatures', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'text-anchor', 'letter-spacing', 'word-spacing', 'text-decoration', 'textLength', 'lengthAdjust', 'x', 'xml:space', 'y'],
+  text: ['fontType', 'clip-path', 'clip-rule', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'font-family', 'font-size', 'font-style', 'font-weight', 'mask', 'opacity', 'requiredFeatures', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'text-anchor', 'letter-spacing', 'word-spacing', 'text-decoration', 'textLength', 'lengthAdjust', 'x', 'xml:space', 'y', 'dominant-baseline'],
   textPath: ['method', 'requiredFeatures', 'spacing', 'startOffset', 'systemLanguage', 'xlink:href'],
   title: [],
   tspan: ['clip-path', 'clip-rule', 'dx', 'dy', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'font-family', 'font-size', 'font-style', 'font-weight', 'mask', 'opacity', 'requiredFeatures', 'rotate', 'stroke', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'systemLanguage', 'text-anchor', 'textLength', 'x', 'xml:space', 'y'],
