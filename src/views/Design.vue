@@ -2,7 +2,52 @@
   <div class="overflow-y-auto text-gray-600">
     <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 h-full">
       <!-- <div ref="glCanvas" class="w-full h-full absolute top-0 left-0 z-10"></div> -->
-      <div ref="glCanvas" class="w-full h-[50vh] md:h-[70vh] lg:h-full lg:col-span-8 z-10 border-container"></div>
+      <div class="relative w-full h-[50vh] md:h-[70vh] lg:h-full lg:col-span-8 z-10 border-container">
+        <!-- 返回按钮 - 放在顶部 -->
+        <button 
+          @click="router.back()"
+          class="absolute left-4 top-4 w-10 h-10 rounded-full bg-dark hover:bg-darker 
+                 transition-colors duration-300 flex items-center justify-center text-white 
+                 shadow-lg group"
+          title="返回上一页"
+        >
+          <font-awesome-icon 
+            :icon="['fas', 'arrow-left']" 
+            class="group-hover:scale-110 transition-transform duration-300"
+          />
+        </button>
+
+        <div ref="glCanvas" class="w-full h-full"></div>
+        
+        <!-- 编辑操作按钮 - 放在中间 -->
+        <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
+          <!-- 撤销按钮 -->
+          <button 
+            @click="cancelEdit"
+            class="w-10 h-10 rounded-full bg-dark hover:bg-darker transition-colors duration-300 
+                   flex items-center justify-center text-white shadow-lg group"
+            title="撤销"
+          >
+            <font-awesome-icon 
+              :icon="['fas', 'undo']" 
+              class="group-hover:scale-110 transition-transform duration-300"
+            />
+          </button>
+
+          <!-- 重做按钮 -->
+          <button 
+            @click="restoreCancel"
+            class="w-10 h-10 rounded-full bg-dark hover:bg-darker transition-colors duration-300 
+                   flex items-center justify-center text-white shadow-lg group"
+            title="重做"
+          >
+            <font-awesome-icon 
+              :icon="['fas', 'redo']" 
+              class="group-hover:scale-110 transition-transform duration-300"
+            />
+          </button>
+        </div>
+      </div>
       <!-- 设计工具区域 -->
       <div class="lg:h-screen md:h-[70vh] lg:col-span-4 flex flex-col border-container">
         <div class="flex items-center justify-center p-2">
@@ -60,7 +105,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, provide } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import StyleTab from '../components/Tabs/StyleTab.vue';
 import TextTab from '../components/Tabs/TextTab.vue';
 import LogoTab from '../components/Tabs/LogoTab.vue';
@@ -83,6 +128,7 @@ const props = defineProps({
 
 // 状态定义
 const route = useRoute();
+const router = useRouter();
 const glCanvas = ref(null);
 const currentTab = ref('text');
 const categoryName = ref('Basketball');
@@ -358,6 +404,20 @@ onMounted(async () => {
     });
   }
 });
+
+// 撤销操作
+const cancelEdit = () => {
+  if(world && world.svgEditor.svgCanvas) {
+    world.svgEditor.svgCanvas.undoMgr.undo();
+  }
+};
+
+// 重做操作
+const restoreCancel = () => {
+  if(world && world.svgEditor.svgCanvas) {
+    world.svgEditor.svgCanvas.undoMgr.redo();
+  }
+};
 </script>
 
 <style scoped>
@@ -391,4 +451,13 @@ onMounted(async () => {
   @apply bg-darker border border-solid border-dark rounded-md;
 }
 
+/* 添加按钮悬停效果 */
+.group:hover {
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 添加按钮激活效果 */
+.group:active {
+  transform: scale(0.95);
+}
 </style>

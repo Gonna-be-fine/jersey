@@ -3,8 +3,8 @@
     <div class="footer-content">
       <!-- 关于我们 -->
       <div class="footer-section">
-        <h3 class="footer-title">关于 Drinkify</h3>
-        <p>Drinkify 是一个高级电商WordPress区块主题,完美适合创建酒类商店网站。</p>
+        <h3 class="footer-title">关于 TeeCraft</h3>
+        <p>TeeCraft 是一个高级电商WordPress区块主题,完美适合创建酒类商店网站。</p>
       </div>
 
       <!-- 快速链接 -->
@@ -58,7 +58,7 @@
 
     <div class="footer-bottom">
       <div class="copyright">
-        <p>Copyright © 2024 Drinkify | Drinkify by Catch Themes</p>
+        <p>Copyright © 2024 TeeCraft | TeeCraft by Catch Themes</p>
       </div>
       <nav class="footer-bottom-nav">
         <a href="#">条款与条件</a>

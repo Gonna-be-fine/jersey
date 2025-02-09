@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen bg-gray-50">
+  <div class="flex min-h-screen bg-gray-50 text-gray-700">
     <!-- 左侧筛选区 -->
     <div class="w-64 border-r bg-white">
       <!-- Sticky 容器 -->

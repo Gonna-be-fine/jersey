@@ -40,7 +40,12 @@
           <p><span class="font-bold text-white">{{ players.length }}</span>件</p>
           <p class="font-ellipsis w-20">无悔篮球T-shirt</p>
         </div>
-        <button class="text-sm bg-primary hover:bg-secondary text-white py-2 px-4 rounded-lg">加入购物车<span class="font-bold">￥{{ computeTotalPrice }}</span></button>
+        <button 
+          @click="handleAddToCart"
+          class="text-sm bg-primary hover:bg-secondary text-white py-2 px-4 rounded-lg"
+        >
+          加入购物车<span class="font-bold">￥{{ computeTotalPrice }}</span>
+        </button>
       </div>
     </div>
     <div>
@@ -51,7 +56,11 @@
 
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
+import { useCartStore } from '../../stores/cartStore';
+import { useToast } from '../../utils/toast';
 
+const toast = useToast();
+const cartStore = useCartStore();
 const props = defineProps({
   players: Array,
 });
@@ -99,6 +108,35 @@ const computeTotalPrice = computed(() => {
   }
   return (price * props.players.length).toFixed(2);
 })
+
+const handleAddToCart = () => {
+  // 验证所有必填字段
+  const isValid = props.players.every(player => 
+    player.name && player.number && player.size
+  );
+  
+  if (!isValid) {
+    toast.error('请填写所有球员信息');
+    return;
+  }
+
+  // 获取当前设计的SVG内容
+  const design = {
+    editSvg: window.world.svgEditor.svgCanvas.getSvgString(),
+    mainSvg: document.querySelector('#mainSvgCtn').outerHTML
+  };
+
+  // 添加到购物车
+  cartStore.addToCart({
+    players: props.players,
+    price: computeTotalPrice.value,
+    productName: '无悔篮球T-shirt',
+    design
+  });
+
+  // 提示用户
+  toast.success('已添加到购物车！');
+};
 </script>
 
 <style scoped>

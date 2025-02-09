@@ -5,13 +5,13 @@
         <nav class="container mx-auto flex justify-between items-center py-4 px-8">
           <div class="flex items-center gap-12">
             <router-link to="/" class="font-primary text-2xl font-bold text-text">
-              Drinkify
+              TeeCraft
             </router-link>
             
             <div class="flex gap-8">
               <router-link to="/" class="nav-link">首页</router-link>
               <router-link to="/blog" class="nav-link">博客</router-link>
-              <router-link to="/shop" class="nav-link">商店</router-link>
+              <router-link to="/products" class="nav-link">商店</router-link>
               <router-link to="/patterns" class="nav-link">模板</router-link>
             </div>
           </div>
