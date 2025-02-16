@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: localStorage.getItem('token') || '',
+    tokenExpires: localStorage.getItem('tokenExpires') || null,
     userInfo: JSON.parse(localStorage.getItem('userInfo')) || {
       id: null,
       email: '',
@@ -14,14 +15,20 @@ export const useUserStore = defineStore('user', {
   persist: true, // 启用持久化
 
   getters: {
-    isLoggedIn: (state) => !!state.token,
+    isLoggedIn: (state) => {
+      if (!state.token || !state.tokenExpires) return false;
+      // 检查token是否过期
+      return state.token && new Date().getTime() < state.tokenExpires;
+    },
     displayName: (state) => state.userInfo.nickname || state.userInfo.email || '未登录'
   },
 
   actions: {
-    setToken(token) {
+    setToken(token, expiresIn) {
       this.token = token;
+      this.tokenExpires = expiresIn;
       localStorage.setItem('token', token);
+      localStorage.setItem('tokenExpires', expiresIn);
     },
 
     setUserInfo(userInfo) {
@@ -31,6 +38,7 @@ export const useUserStore = defineStore('user', {
 
     logout() {
       this.token = '';
+      this.tokenExpires = null;
       this.userInfo = {
         id: null,
         email: '',
@@ -38,6 +46,7 @@ export const useUserStore = defineStore('user', {
         avatar: ''
       };
       localStorage.removeItem('token');
+      localStorage.removeItem('tokenExpires');
       localStorage.removeItem('userInfo');
     }
   }

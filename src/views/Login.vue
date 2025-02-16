@@ -171,8 +171,11 @@ const handleLogin = async () => {
     });
 
     if (response.status === 200) {
-      // 保存token和用户信息
-      userStore.setToken(response.data.access_token);
+      // 保存token和过期时间
+      userStore.setToken(
+        response.data.access_token,
+        response.data.expires_in
+      );
       userStore.setUserInfo(response.data.user);
       
       toast.success('登录成功');

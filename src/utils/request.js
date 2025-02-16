@@ -16,8 +16,12 @@ const request = axios.create({
 request.interceptors.request.use(
   config => {
     const userStore = useUserStore();
-    if (userStore.token) {
+    // 检查token是否存在且未过期
+    if (userStore.isLoggedIn) {
       config.headers.Authorization = `Bearer ${userStore.token}`;
+    } else if (userStore.token) {
+      // 如果token存在但已过期，清除用户信息
+      userStore.logout();
     }
     return config;
   },
