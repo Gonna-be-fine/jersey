@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="text-gray-500 min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
       <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
         登录您的账户
@@ -70,12 +70,17 @@
             </div>
           </div>
 
+          <div v-if="error" class="text-red-500 text-sm mt-2">
+            {{ error }}
+          </div>
+
           <div>
             <button 
               type="submit"
-              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              :disabled="isSubmitting"
+              class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              登录
+              {{ isSubmitting ? '登录中...' : '登录' }}
             </button>
           </div>
         </form>
@@ -126,29 +131,63 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Login',
-  data() {
-    return {
-      form: {
-        email: '',
-        password: '',
-        remember: false
-      }
-    }
-  },
-  methods: {
-    async handleLogin() {
-      try {
-        // 这里添加登录逻辑
-        console.log('Login form:', this.form)
-        // 登录成功后跳转到首页
-        this.$router.push('/')
-      } catch (error) {
-        console.error('Login failed:', error)
-      }
-    }
+<script setup>
+import request from '../utils/request';
+import { useToast } from '../utils/toast';
+import { useUserStore } from '../stores/userStore';
+import { useRouter, useRoute } from 'vue-router';
+import { ref } from 'vue';
+
+const router = useRouter();
+const route = useRoute();
+
+const userStore = useUserStore();
+const toast = useToast();
+
+const form = {
+  email: '',
+  password: '',
+  remember: false
+};
+const isSubmitting = ref(false);
+const error = ref(null);
+
+const handleLogin = async () => {
+  error.value = null;
+
+  // 验证邮箱格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.email)) {
+    error.value = '请输入正确的邮箱地址';
+    return;
   }
-}
+
+  try {
+    isSubmitting.value = true;
+    
+    const response = await request.post('/users/login/email', {
+      email: form.email,
+      password: form.password,
+    });
+
+    if (response.status === 200) {
+      // 保存token和用户信息
+      userStore.setToken(response.data.access_token);
+      userStore.setUserInfo(response.data.user);
+      
+      toast.success('登录成功');
+      
+      // 如果有重定向地址，则跳转回去
+      const redirect = route.query.redirect || '/';
+      router.push(redirect);
+    } else {
+      error.value = response.message || '登录失败';
+    }
+  } catch (error) {
+    error.value = error.message || '登录失败，请稍后重试';
+    toast.error(error.value);
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 </script> 

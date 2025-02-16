@@ -1,10 +1,15 @@
 <template>
   <section class="pt-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <section-title title="Design Categories">
+      <section-title title="设计类型">
         <template #action>
-          <button class="bg-primary hover:bg-secondary text-white font-semibold py-2 px-6 transition-colors duration-300">
-            All natural Wines
+          <button 
+            @click="router.push('/products')"
+            class="bg-primary hover:bg-secondary text-white font-semibold py-2 px-6 
+                   transition-colors duration-300 flex items-center gap-2"
+          >
+            <span>所有服装类型</span>
+            <font-awesome-icon :icon="['fas', 'arrow-right']" />
           </button>
         </template>
       </section-title>

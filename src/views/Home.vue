@@ -4,21 +4,25 @@
     <section class="hero">
       <div class="hero-container">
         <div class="hero-content">
-          <p class="header-meta">Meet With</p>
+          <p class="header-meta">遇见属于你的独特风格</p>
           <h2 class="hero-title">
-            <span class="highlight">Sweet Elegant</span> Fine 
+            <span class="highlight">个性化定制</span> 
             <span class="winery-text">
-              <span>W</span>
+              设计你的专属服饰
+              <!-- <span>W</span>
               <span>i</span>
               <span>n</span>
               <span>e</span>
               <span>r</span>
-              <span>y</span>
+              <span>y</span> -->
             </span>
           </h2>
-          <p class="hero-description">White dry wine of Appellation of Controlled Origin. Made from grape varieties cultivated in France.</p>
+          <p class="hero-description">利用AI与创新技术，定制属于你的衣服。多种款式，任你设计，尽享个性化体验。</p>
           <div class="button-wrapper">
-            <button class="view-more-btn">View More</button>
+            <button class="view-more-btn">
+              <span>查看更多</span>
+              <font-awesome-icon :icon="['fas', 'arrow-right']" class="btn-icon" />
+            </button>
           </div>
         </div>
         <div class="hero-image">
@@ -93,7 +97,7 @@ export default {
 
 .hero-title {
   font-family: var(--font-primary);
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   line-height: 1.2;
   color: var(--text-dark);
   margin-bottom: 1.5rem;
@@ -223,34 +227,29 @@ export default {
   background-color: var(--primary-color);
   color: var(--text-color);
   border: none;
-  padding: clamp(0.5rem, 1vw, 1.25rem) clamp(1.25rem, 2vw, 3rem);
-  font-size: clamp(0.875rem, 1vw, 1rem);
+  padding: 1rem 2rem;
+  font-size: 1rem;
   font-weight: 600;
   text-transform: capitalize;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   overflow: hidden;
 }
 
-.view-more-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: var(--secondary-color);
-  transition: all 0.3s ease;
-  z-index: 1;
+.view-more-btn:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
 }
 
-.view-more-btn:hover::before {
-  left: 0;
+.btn-icon {
+  transition: transform 0.3s ease;
 }
 
-.view-more-btn span {
-  position: relative;
-  z-index: 2;
+.view-more-btn:hover .btn-icon {
+  transform: translateX(4px);
 }
 </style> 
