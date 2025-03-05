@@ -1,0 +1,142 @@
+[
+  {
+    "id": 1,
+    "name": "Ball Stars 可翻转球衣 - 男款",
+    "genderType": "men",
+    "sportType": "basketball",
+    "clothType": "jersey",
+    "description": "-",
+    "pictures": ["/b1/jersy_0.jpg", "/b1/jersy_1.jpg"],
+    "isComb": false,
+    "relativeId": 0,
+    "price": 65.6,
+    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "discountId": 0,
+    
+    "scene": {
+      "backgroundColor": "#5b5b5b",
+      "cameraPosition": {
+        "x": -0.009666748088079795,
+        "y": 0.1459023549040876,
+        "z": 0.6137803763666974
+      },
+      "model": {
+        "url": "/data/cloth.glb",
+        "position": {
+          "x": 0,
+          "y": -1.2,
+          "z": 0
+        }
+      },
+      "texture": {
+        "main": "/texture/style/style1.svg",
+        "edit": "/texture/style/editText.svg"
+      }
+    }
+  },
+  {
+    "id": 2,
+    "name": "Ball Stars 可翻转裤子 - 男款",
+    "genderType": "men",
+    "sportType": "basketball",
+    "clothType": "Shorts",
+    "description": "-",
+    "pictures": ["/b1/pant_0.jpg", "/b1/pant_1.jpg"],
+    "isComb": false,
+    "relativeId": 0,
+    "price": 65.6,
+    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "discountId": 0,
+    
+    "scene": {
+      "backgroundColor": "#5b5b5b",
+      "cameraPosition": {
+        "x": -0.009666748088079795,
+        "y": 0.1459023549040876,
+        "z": 0.6137803763666974
+      },
+      "model": {
+        "url": "/data/cloth.glb",
+        "position": {
+          "x": 0,
+          "y": -1.2,
+          "z": 0
+        }
+      },
+      "texture": {
+        "main": "/texture/style/style1.svg",
+        "edit": "/texture/style/editText.svg"
+      }
+    }
+  },
+  {
+    "id": 3,
+    "name": "Ball Stars 可翻转套装 - 男款",
+    "genderType": "men",
+    "sportType": "basketball",
+    "clothType": "jersey",
+    "description": "-",
+    "pictures": ["/b1/0.jpg", "/b1/1.jpg", "/b1/2.jpg", "/b1/3.jpg"],
+    "isComb": true,
+    "relativeId": 3,
+    "price": 65.6,
+    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "discountId": 0,
+    
+    "scene": {
+      "backgroundColor": "#5b5b5b",
+      "cameraPosition": {
+        "x": -0.009666748088079795,
+        "y": 0.1459023549040876,
+        "z": 0.6137803763666974
+      },
+      "model": {
+        "url": "/data/cloth.glb",
+        "position": {
+          "x": 0,
+          "y": -1.2,
+          "z": 0
+        }
+      },
+      "texture": {
+        "main": "/texture/style/style1.svg",
+        "edit": "/texture/style/editText.svg"
+      }
+    }
+  },
+  {
+    "id": 65269638,
+    "name": "Windy City KB1-JY201 - 男款",
+    "genderType": "men",
+    "sportType": "basketball",
+    "clothType": "jersey",
+    "description": "-",
+    "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
+    "isComb": true,
+    "relativeId": 0,
+    "price": 65.6,
+    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "discountId": 0,
+    
+    "scene": {
+      "backgroundColor": "#5b5b5b",
+      "cameraPosition": {
+        "x": -0.009666748088079795,
+        "y": 0.1459023549040876,
+        "z": 0.6137803763666974
+      },
+      "model": {
+        "url": "/models/77808584_CLI-96-NS-1-Mens-Player-Jersey-V-Neck-Collar-v4.zip.glb",
+        "position": {
+          "x": 0,
+          "y": -1.2,
+          "z": 0
+        }
+      },
+      "texture": {
+        "main": "/design_65269638/design.svg",
+        "edit": "/texture/style/editText.svg"
+      }
+    }
+  }
+]

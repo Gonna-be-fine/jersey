@@ -20,7 +20,7 @@ const routes = [
     component: () => import('../views/Register.vue')
   },
   {
-    path: '/design/:categoryId',
+    path: '/design/:productId',
     name: 'Design',
     // component: () => import('../_App.vue'),
     component: () => import('../views/Design.vue'),

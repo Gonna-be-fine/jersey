@@ -1,0 +1,35 @@
+{
+  "id": 1,
+  "name": "Ball Stars 可翻转球衣 - 男款",
+  "genderType": "men",
+  "sportType": "basketball",
+  "clothType": "jersey",
+  "description": "-",
+  "pictures": ["/images/clothes/b1/jersy_0.jpg", "/images/clothes/b1/jersy_1.jpg"],
+  "isComb": false,
+  "relativeId": 0,
+  "price": 65.6,
+  "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+  "discountId": 0,
+  
+  "scene": {
+    "backgroundColor": "#5b5b5b",
+    "cameraPosition": {
+      "x": -0.009666748088079795,
+      "y": 0.1459023549040876,
+      "z": 0.6137803763666974
+    },
+    "model": {
+      "url": "/data/cloth.glb",
+      "position": {
+        "x": 0,
+        "y": -1.2,
+        "z": 0
+      }
+    },
+    "texture": {
+      "main": "/texture/style/style1.svg",
+      "edit": "/texture/style/editText.svg"
+    }
+  }
+}

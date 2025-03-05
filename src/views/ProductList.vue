@@ -6,7 +6,16 @@
       <div class="sticky top-20">
         <!-- 已选择的筛选标签 -->
         <div v-if="selectedFilters.length > 0" class="p-4 border-b">
-          <h3 class="text-sm font-medium mb-2">已选择：</h3>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium">已选择：</h3>
+            <button 
+              @click="clearAllFilters"
+              class="text-sm text-primary hover:text-secondary transition-colors duration-300 flex items-center gap-1"
+            >
+              <font-awesome-icon :icon="['fas', 'times']" />
+              清除全部
+            </button>
+          </div>
           <div class="flex flex-wrap gap-2">
             <span 
               v-for="filter in selectedFilters" 
@@ -44,23 +53,18 @@
               </svg>
             </button>
             <div v-show="filters.design.isOpen" class="space-y-2 ml-2">
-              <label class="flex items-center">
+              <label 
+                v-for="category in SceneCategories" 
+                :key="category.id"
+                class="flex items-center"
+              >
                 <input 
                   type="checkbox" 
                   class="form-checkbox" 
-                  value="basketball"
-                  v-model="filters.design.selected"
-                  @change="updateFilters('design', 'basketball', '篮球服')">
-                <span class="ml-2">篮球服</span>
-              </label>
-              <label class="flex items-center">
-                <input 
-                  type="checkbox" 
-                  class="form-checkbox" 
-                  value="football"
-                  v-model="filters.design.selected"
-                  @change="updateFilters('design', 'football', '足球服')">
-                <span class="ml-2">足球服</span>
+                  :value="category.id"
+                  :checked="filters.design.selected.includes(category.id)"
+                  @change="updateFilters('design', category.id, category.name)">
+                <span class="ml-2">{{ category.name }}</span>
               </label>
             </div>
           </div>
@@ -81,32 +85,50 @@
               </svg>
             </button>
             <div v-show="filters.gender.isOpen" class="space-y-2 ml-2">
-              <label class="flex items-center">
+              <label 
+                v-for="category in GenderCategories" 
+                :key="category.id"
+                class="flex items-center"
+              >
                 <input 
                   type="checkbox" 
                   class="form-checkbox" 
-                  value="mens"
-                  v-model="filters.gender.selected"
-                  @change="updateFilters('gender', 'mens', '男装')">
-                <span class="ml-2">男装</span>
+                  :value="category.id"
+                  :checked="filters.gender.selected.includes(category.id)"
+                  @change="updateFilters('gender', category.id, category.name)">
+                <span class="ml-2">{{ category.name }}</span>
               </label>
-              <label class="flex items-center">
+            </div>
+          </div>
+
+          <!-- 在性别筛选后添加服装类型筛选 -->
+          <div class="mb-4">
+            <button 
+              @click="toggleFilter('clothType')" 
+              class="w-full flex justify-between items-center font-medium mb-2">
+              <span>服装类型</span>
+              <svg 
+                :class="{'rotate-180': filters.clothType.isOpen}" 
+                class="w-5 h-5 transition-transform duration-200" 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 20 20" 
+                fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div v-show="filters.clothType.isOpen" class="space-y-2 ml-2">
+              <label 
+                v-for="category in ClothCategories" 
+                :key="category.id"
+                class="flex items-center"
+              >
                 <input 
                   type="checkbox" 
                   class="form-checkbox" 
-                  value="womens"
-                  v-model="filters.gender.selected"
-                  @change="updateFilters('gender', 'womens', '女装')">
-                <span class="ml-2">女装</span>
-              </label>
-              <label class="flex items-center">
-                <input 
-                  type="checkbox" 
-                  class="form-checkbox" 
-                  value="youth"
-                  v-model="filters.gender.selected"
-                  @change="updateFilters('gender', 'youth', '青少年')">
-                <span class="ml-2">青少年</span>
+                  :value="category.id"
+                  :checked="filters.clothType.selected.includes(category.id)"
+                  @change="updateFilters('clothType', category.id, category.name)">
+                <span class="ml-2">{{ category.name }}</span>
               </label>
             </div>
           </div>
@@ -115,20 +137,31 @@
     </div>
 
     <!-- 右侧商品展示区 -->
-    <div class="flex-1 p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="product in displayedProducts" :key="product.id" class="bg-white rounded-lg shadow">
-          <div class="p-4">
-            <img :src="product.images[0]" :alt="product.name" class="w-full h-64 object-cover rounded">
+    <div class="flex-1 p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div v-for="product in displayedProducts" :key="product.id" class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <div class="p-3">
+            <div 
+              class="relative w-full h-64 rounded overflow-hidden bg-gray-100"
+              @mouseenter="showSecondImage(product.id)"
+              @mouseleave="hideSecondImage(product.id)"
+            >
+              <img 
+                :src="`${ImagePrex}/${product.images[currentImage[product.id] || 0]}`" 
+                :alt="product.name" 
+                class="w-full h-full object-cover transition-opacity duration-300"
+              >
+            </div>
             <h3 class="mt-4 text-lg font-medium">{{ product.name }}</h3>
             <div class="mt-2 flex justify-between items-center">
-              <span class="text-gray-600">${{ product.price }}</span>
-              <button 
-                @click="handleCustomize(product)"
-                class="bg-primary hover:bg-secondary text-white px-2 py-1 rounded transition-colors duration-300">
-                自定义
-              </button>
+              <span class="text-gray-600">￥{{ product.price }}/件</span>
+              <span class="text-gray-600">￥{{ product.priceList[2][0]*product.priceList[2][1] }}/7件</span>
             </div>
+            <button 
+              @click="handleCustomize(product)"
+              class="bg-primary w-full hover:bg-secondary mt-2 text-white px-2 py-1 rounded transition-colors duration-300">
+              自定义
+            </button>
             <div class="text-center mt-2 border-b cursor-pointer hover:text-primary transition-colors duration-300"
                  @click="viewProduct(product)">
               查看产品
@@ -171,10 +204,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { SceneCategories, GenderCategories, ClothCategories } from '../configs/clothes';
+import { useToast } from '../utils/toast';
 
+const ImagePrex = import.meta.env.VITE_CLOTH_PREX;
 const router = useRouter();
+const route = useRoute();
 
 // 筛选器状态
 const filters = ref({
@@ -185,33 +222,117 @@ const filters = ref({
   gender: { 
     isOpen: true,
     selected: [] 
+  },
+  clothType: {
+    isOpen: true,
+    selected: []
   }
 });
 
 // 已选择的筛选项
 const selectedFilters = ref([]);
 
-// 更新筛选器
+// 默认占位图片
+const defaultImage = '/images/assets/placeholder.png'; // 确保这个路径存在
+
+// 从URL参数获取筛选状态
+const initFiltersFromQuery = () => {
+  // 清空现有筛选
+  selectedFilters.value = [];
+  filters.value.design.selected = [];
+  filters.value.gender.selected = [];
+  filters.value.clothType.selected = [];
+
+  // 处理设计类型筛选
+  const designParam = route.query.design;
+  if (designParam) {
+    const designIds = designParam.split(',');
+    designIds.forEach(id => {
+      const category = SceneCategories.find(cat => cat.id === id);
+      if (category) {
+        filters.value.design.selected.push(id);
+        selectedFilters.value.push({
+          id: `design-${id}`,
+          type: 'design',
+          value: id,
+          label: category.name
+        });
+      }
+    });
+  }
+
+  // 处理性别筛选
+  const genderParam = route.query.gender;
+  if (genderParam) {
+    const genderIds = genderParam.split(',');
+    genderIds.forEach(id => {
+      const category = GenderCategories.find(cat => cat.id === id);
+      if (category) {
+        filters.value.gender.selected.push(id);
+        selectedFilters.value.push({
+          id: `gender-${id}`,
+          type: 'gender',
+          value: id,
+          label: category.name
+        });
+      }
+    });
+  }
+
+  // 处理服装类型筛选
+  const clothTypeParam = route.query.clothType;
+  if (clothTypeParam) {
+    const clothTypeIds = clothTypeParam.split(',');
+    clothTypeIds.forEach(id => {
+      const category = ClothCategories.find(cat => cat.id === id);
+      if (category) {
+        filters.value.clothType.selected.push(id);
+        selectedFilters.value.push({
+          id: `clothType-${id}`,
+          type: 'clothType',
+          value: id,
+          label: category.name
+        });
+      }
+    });
+  }
+};
+
+// 监听路由变化
+watch(
+  () => route.query,
+  () => {
+    initFiltersFromQuery();
+  },
+  { immediate: true } // 立即执行一次
+);
+
+// 修改updateFilters函数
 const updateFilters = (type, value, label) => {
-  const isChecked = filters.value[type].selected.includes(value);
+  const currentSelected = filters.value[type].selected;
+  const isSelected = currentSelected.includes(value);
   
-  if (isChecked) {
-    // 添加到已选择列表
+  if (isSelected) {
+    // 如果已选中，则移除
+    filters.value[type].selected = currentSelected.filter(v => v !== value);
+    // 从已选择标签列表中移除
+    const index = selectedFilters.value.findIndex(filter => filter.id === `${type}-${value}`);
+    if (index !== -1) {
+      selectedFilters.value.splice(index, 1);
+    }
+  } else {
+    // 如果未选中，则添加
+    filters.value[type].selected.push(value);
     selectedFilters.value.push({
       id: `${type}-${value}`,
       type,
       value,
       label
     });
-  } else {
-    // 从已选择列表中移除
-    const index = selectedFilters.value.findIndex(
-      filter => filter.id === `${type}-${value}`
-    );
-    if (index !== -1) {
-      selectedFilters.value.splice(index, 1);
-    }
   }
+
+  // 更新URL参数
+  updateQueryParams();
 };
 
 // 移除筛选标签
@@ -225,6 +346,9 @@ const removeFilter = (filter) => {
   if (index !== -1) {
     selectedFilters.value.splice(index, 1);
   }
+
+  // 更新URL参数
+  updateQueryParams();
 };
 
 // 切换筛选器展开状态
@@ -235,68 +359,97 @@ const toggleFilter = (filterName) => {
 // 分页相关数据
 const currentPage = ref(1);
 const pageSize = ref(12); // 每页显示12个商品
-const products = ref([
-  {
-    id: 1,
-    name: "BALL STARS REVERSIBLE JERSEY",
-    price: 69.95,
-    images: ["/path-to-image.jpg"]
-  },
-  {
-    id: 1,
-    name: "BALL STARS REVERSIBLE JERSEY",
-    price: 69.95,
-    images: ["/path-to-image.jpg"]
-  },
-  {
-    id: 1,
-    name: "BALL STARS REVERSIBLE JERSEY",
-    price: 69.95,
-    images: ["/path-to-image.jpg"]
-  },
-  {
-    id: 1,
-    name: "BALL STARS REVERSIBLE JERSEY",
-    price: 69.95,
-    images: ["/path-to-image.jpg"]
-  },
-  {
-    id: 1,
-    name: "BALL STARS REVERSIBLE JERSEY",
-    price: 69.95,
-    images: ["/path-to-image.jpg"]
-  },
-  // ... 添加更多测试数据
-]);
+const products = ref([]);
 
-// 计算总页数
-const totalPages = computed(() => {
-  return Math.ceil(products.value.length / pageSize.value);
+// 获取商品数据
+const fetchProducts = async () => {
+  try {
+    const response = await fetch('/dataset/mockdata.json');
+    const data = await response.json();
+    
+    // 转换数据格式以匹配筛选需求
+    products.value = data.map(item => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      // 只使用有效的图片URL
+      images: item.pictures?.filter(url => url) || [defaultImage],
+      designType: item.sportType,
+      gender: item.genderType,
+      clothType: item.clothType,
+      description: item.description,
+      isComb: item.isComb,
+      relativeId: item.relativeId,
+      priceList: item.priceList,
+      scene: item.scene
+    }));
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    useToast().error('获取商品数据失败');
+  }
+};
+
+// 在组件挂载时获取数据
+onMounted(() => {
+  fetchProducts();
 });
 
-// 计算当前页显示的商品
+// 计算筛选后的商品
+const filteredProducts = computed(() => {
+  let result = [...products.value];
+  
+  // 应用设计类型筛选
+  if (filters.value.design.selected.length > 0) {
+    result = result.filter(product => 
+      filters.value.design.selected.includes(product.designType)
+    );
+  }
+  
+  // 应用性别筛选
+  if (filters.value.gender.selected.length > 0) {
+    result = result.filter(product => 
+      filters.value.gender.selected.includes(product.gender)
+    );
+  }
+  
+  // 应用服装类型筛选
+  if (filters.value.clothType.selected.length > 0) {
+    result = result.filter(product => 
+      filters.value.clothType.selected.includes(product.clothType)
+    );
+  }
+  
+  return result;
+});
+
+// 修改显示的商品列表，使用筛选后的结果
 const displayedProducts = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value;
   const end = start + pageSize.value;
-  return products.value.slice(start, end);
+  return filteredProducts.value.slice(start, end);
+});
+
+// 修改总页数计算，使用筛选后的结果
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / pageSize.value);
 });
 
 // 切换页码
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page;
-    // 可以在这里触发重新获取数据��操作
+    // 可以在这里触发重新获取数据的操作
   }
 };
 
 // 处理自定义按钮点击
 const handleCustomize = (product) => {
   // 这里的categoryId应该根据实际产品类别来设置
-  const categoryId = product.categoryId || 'default';
+  const id = product.id || 'default';
   router.push({
     name: 'Design',
     params: { 
-      categoryId: categoryId
+      productId: id
     }
   });
 };
@@ -310,4 +463,77 @@ const viewProduct = (product) => {
     }
   });
 };
-</script> 
+
+// 更新URL参数
+const updateQueryParams = () => {
+  const query = { ...route.query }; // 保留其他查询参数
+  
+  // 添加设计类型筛选
+  const designFilters = filters.value.design.selected;
+  if (designFilters.length > 0) {
+    query.design = designFilters.join(',');
+  } else {
+    delete query.design;
+  }
+  
+  // 添加性别筛选
+  const genderFilters = filters.value.gender.selected;
+  if (genderFilters.length > 0) {
+    query.gender = genderFilters.join(',');
+  } else {
+    delete query.gender;
+  }
+  
+  // 添加服装类型筛选
+  const clothTypeFilters = filters.value.clothType.selected;
+  if (clothTypeFilters.length > 0) {
+    query.clothType = clothTypeFilters.join(',');
+  } else {
+    delete query.clothType;
+  }
+  
+  // 更新URL，但不触发页面刷新
+  router.replace({ query });
+};
+
+// 清除所有筛选
+const clearAllFilters = () => {
+  // 清空所有选中状态
+  Object.keys(filters.value).forEach(key => {
+    filters.value[key].selected = [];
+  });
+  
+  // 清空已选择列表
+  selectedFilters.value = [];
+  
+  // 更新URL参数
+  updateQueryParams();
+};
+
+// 添加图片切换状态管理
+const currentImage = ref({});
+
+// 显示第二张图片
+const showSecondImage = (productId) => {
+  const product = products.value.find(p => p.id === productId);
+  if (product && product.images.length > 1) {
+    currentImage.value[productId] = 1;
+  }
+};
+
+// 显示第一张图片
+const hideSecondImage = (productId) => {
+  currentImage.value[productId] = 0;
+};
+</script>
+
+<style scoped>
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+
+/* 添加图片切换过渡效果 */
+.transition-opacity {
+  transition: opacity 0.3s ease-in-out;
+}
+</style> 

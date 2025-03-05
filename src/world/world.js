@@ -85,6 +85,7 @@ export class World extends EventDispatch {
     }else{
       const resizeObserver = new ResizeObserver(this.onWindowResize)
       resizeObserver.observe(this.glDom);
+      this.resizeObserver = resizeObserver;
     }
 
     this.scene.add(new THREE.AxesHelper(1));
@@ -206,7 +207,7 @@ export class World extends EventDispatch {
 
   animation() {
     const animate = () => {
-      requestAnimationFrame(animate);
+      this.animationFrameId = requestAnimationFrame(animate);
 
       const delta = this.clock.getDelta();
       this.controls.update(delta);
@@ -477,5 +478,68 @@ export class World extends EventDispatch {
       });
   }
 
-  destroy() {}
+  destroy() {
+    if(!this.glDom){
+      window.removeEventListener('resize', this.onWindowResize, false);
+    }else{
+      this.resizeObserver.disconnect();
+    }
+
+    // 清理 Three.js 相关资源
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        if (object.geometry) {
+          object.geometry.dispose();
+        }
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(material => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+        if (object.texture) {
+          object.texture.dispose();
+        }
+      });
+    }
+
+    // 清理渲染器
+    if (this.renderer) {
+      this.renderer.dispose();
+      this.renderer.forceContextLoss();
+      this.renderer.domElement = null;
+    }
+
+    // 清理动画循环
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    // // 清理编辑器相关资源
+    // if (this.svgEditor) {
+    //   this.svgEditor.destroy();
+    // }
+
+    // 清理纹理管理器
+    if (this.mainTextManager) {
+      this.mainTextManager.destroy();
+    }
+
+    // 清空场景
+    if (this.scene) {
+      while(this.scene.children.length > 0) { 
+        this.scene.remove(this.scene.children[0]);
+      }
+    }
+
+    // 清空引用
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.controls = null;
+    this.svgEditor = null;
+    this.mainTextManager = null;
+
+  }
 }

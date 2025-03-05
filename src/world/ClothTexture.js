@@ -72,6 +72,13 @@ class ClothTexture {
     const svgText = rootSvg.node.outerHTML;
     this.svgToTexture(svgText);
   }
+
+  destroy() {
+    this.canvas = null;
+    if(this.canvasTexture) {
+      this.canvasTexture.dispose();
+    }
+  }
 }
 
 export { ClothTexture }

@@ -31,8 +31,10 @@
           <div class="p-6">
             <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
             <!-- <div class="mt-3 flex items-center"></div> -->
-            <button @click="openDesignPanel"
-                    class="mt-4 w-full bg-primary hover:bg- text-white py-2 px-4 rounded transition-colors duration-300 flex items-center justify-center">
+            <button 
+              @click="openDesignPanel(product)"
+              class="mt-4 w-full bg-primary hover:bg- text-white py-2 px-4 rounded transition-colors duration-300 flex items-center justify-center"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" 
                    class="h-5 w-5 mr-2" 
                    fill="none" 
@@ -43,7 +45,7 @@
                       stroke-width="2" 
                       d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              Design now
+              挑选设计
             </button>
           </div>
         </div>
@@ -62,43 +64,24 @@ import { ref } from 'vue'
 import SectionTitle from './SectionTitle.vue'
 import DesignPanel from './DesignPanel.vue'
 import { useRouter } from 'vue-router';
+import { SceneCategories } from '../../configs/clothes';
 
 const router = useRouter();
 
 // 定义数据
-const products = ref([
-  {
-    id: 1,
-    name: 'Basketball Design',
-    image: '/images/strawberry.png',
-    onSale: false
-  },
-  {
-    id: 2,
-    name: 'Football Design',
-    image: '/images/strawberry.png',
-    onSale: false
-  },
-  {
-    id: 3,
-    name: 'T-shirt Design',
-    image: '/images/strawberry.png',
-    onSale: false
-  },
-  {
-    id: 4,
-    name: 'Shirt Design',
-    image: '/images/strawberry.png',
-    onSale: false
-  }
-])
+const products = ref(SceneCategories)
 
 const isDesignPanelOpen = ref(false)
 
 // 定义方法
-const openDesignPanel = () => {
-  router.push('/products');
-}
+const openDesignPanel = (product) => {
+  router.push({
+    path: '/products',
+    query: { 
+      design: product.id // 传递设计类型ID
+    }
+  });
+};
 
 const handleCategorySelect = (category) => {
   console.log('Selected category:', category)

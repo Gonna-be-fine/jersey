@@ -10,9 +10,9 @@
             
             <div class="flex gap-8">
               <router-link to="/" class="nav-link">首页</router-link>
-              <router-link to="/blog" class="nav-link">博客</router-link>
+              <!-- <router-link to="/blog" class="nav-link">博客</router-link> -->
               <router-link to="/products" class="nav-link">商店</router-link>
-              <router-link to="/patterns" class="nav-link">模板</router-link>
+              <!-- <router-link to="/patterns" class="nav-link">模板</router-link> -->
             </div>
           </div>
 
@@ -27,7 +27,9 @@
       <main class="mt-20 min-h-[calc(100vh-5rem)]">
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
-            <component :is="Component" />
+            <div :key="$route.fullPath">
+              <component :is="Component" />
+            </div>
           </transition>
         </router-view>
       </main>
@@ -35,15 +37,15 @@
       <footer-component />
     </template>
 
-    <!-- <template v-else>
-      <main class="min-h-screen">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
+    <template v-else>
+      <router-view v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <div :key="$route.fullPath">
             <component :is="Component" />
-          </transition>
-        </router-view>
-      </main>
-    </template> -->
+          </div>
+        </transition>
+      </router-view>
+    </template>
   </div>
 </template>
 

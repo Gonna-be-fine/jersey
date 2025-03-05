@@ -1,0 +1,35 @@
+{
+  "id": 65269638,
+  "name": "Windy City KB1-JY201 - 男款",
+  "genderType": "men",
+  "sportType": "basketball",
+  "clothType": "jersey",
+  "description": "-",
+  "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
+  "isComb": true,
+  "relativeId": 0,
+  "price": 65.6,
+  "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+  "discountId": 0,
+  
+  "scene": {
+    "backgroundColor": "#5b5b5b",
+    "cameraPosition": {
+      "x": -0.009666748088079795,
+      "y": 0.1459023549040876,
+      "z": 0.6137803763666974
+    },
+    "model": {
+      "url": "/data/cloth.glb",
+      "position": {
+        "x": 0,
+        "y": -1.2,
+        "z": 0
+      }
+    },
+    "texture": {
+      "main": "/texture/style/style1.svg",
+      "edit": "/texture/style/editText.svg"
+    }
+  }
+}
