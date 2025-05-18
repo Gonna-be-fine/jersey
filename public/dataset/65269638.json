@@ -3,7 +3,7 @@
   "name": "Windy City KB1-JY201 - 男款",
   "genderType": "men",
   "sportType": "basketball",
-  "clothType": "jersey",
+  "clothType": "suit",
   "description": "-",
   "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
   "isComb": true,
@@ -15,21 +15,37 @@
   "scene": {
     "backgroundColor": "#5b5b5b",
     "cameraPosition": {
-      "x": -0.009666748088079795,
-      "y": 0.1459023549040876,
-      "z": 0.6137803763666974
+      "x": -0.18726758022249138,
+      "y": 0.24978520350249844,
+      "z": 1.2972883204329633
     },
-    "model": {
-      "url": "/models/77808584_CLI-96-NS-1-Mens-Player-Jersey-V-Neck-Collar-v4.zip.glb",
-      "position": {
-        "x": 0,
-        "y": -1.2,
-        "z": 0
+    "model": [
+      {
+        "type": "jersey",
+        "url": "/models/77808584_CLI-96-NS-1-Mens-Player-Jersey-V-Neck-Collar-v4.zip.glb",
+        "position": {
+          "x": 0,
+          "y": -1.0,
+          "z": 0
+        },
+        "texture": {
+          "main": "/images/clothes/design_65269638/design.svg",
+          "edit": "/texture/style/editText.svg"
+        }
+      },
+      {
+        "type": "pant",
+        "url": "/models/295661978636127_CLI-956-R1-Mens-Basketball-Shorts-Reverse-1.zip.glb",
+        "position": {
+          "x": 0,
+          "y": -1.2,
+          "z": 0
+        },
+        "texture": {
+          "main": "/images/clothes/design_65269638/pant.svg",
+          "edit": "/texture/style/editText.svg"
+        }
       }
-    },
-    "texture": {
-      "main": "/images/clothes/design_65269638/design.svg",
-      "edit": "/texture/style/editText.svg"
-    }
+    ]
   }
 }

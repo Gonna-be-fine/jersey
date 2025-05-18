@@ -1,5 +1,6 @@
 import { SVG } from '@svgdotjs/svg.js';
 import SvgCanvas from '../lib/svgcanvas';
+import SvgCanvasPant from '../lib/svgcanvas1';
 
 function getIntersectionList(el, target) {}
 const config = {
@@ -12,17 +13,25 @@ const config = {
   baseUnit: 'px',
   fontFile: '/fonts/NotoSansSC-VariableFont_wght.ttf'
 }
-const editContainerId = '#svgCtn';
 
 class SvgEditor {
-  constructor(world) {
+  constructor(world, type) {
     this.world = world;
+    this.type = type;
     this.init();
   }
 
   init() {
-    const container = document.querySelector(editContainerId);
-    this.svgCanvas = new SvgCanvas(container, config);
+    this.editContainerId = `#${this.type}Ctn`;
+    const container = document.querySelector(this.editContainerId);
+    const configCopy = JSON.parse(JSON.stringify(config));
+    configCopy.rootId = `${this.type}root`;
+    if(this.type === 'jersey') {
+      this.svgCanvas = new SvgCanvas(container, configCopy);
+    }else {
+      this.svgCanvas = new SvgCanvasPant(container, configCopy);
+    }
+    this.svgCanvas.svgroot.setAttribute('id',`${this.type}root`) 
   }
 
   async setSvgString(options) {
@@ -45,7 +54,7 @@ class SvgEditor {
     const svgElement = svgDoc.documentElement;
     this.svgEl = SVG(svgElement);
     this.svgCanvas.updateCanvas(this.svgEl.width(), this.svgEl.height());
-    this.world.fire('load_editSvg');
+    this.world.fire('load_editSvg', this.type);
     return true;
   }
 
@@ -77,7 +86,6 @@ class SvgEditor {
   }
 
   getSvgElement() {
-    // return document.querySelector('#svgCtn');
     return this.svgCanvas.svgroot;
   }
 
@@ -114,7 +122,7 @@ class SvgEditor {
       event.preventDefault();
       button = 0;
     }
-    const ctnEl = document.querySelector(editContainerId);
+    const ctnEl = document.querySelector(this.editContainerId);
     let intersectTarget = null;
     if(mouse.cursorOverCanvas || type === 'mouseup') {
       const rect = svgElement.getBoundingClientRect();

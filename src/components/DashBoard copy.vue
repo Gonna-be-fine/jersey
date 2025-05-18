@@ -319,8 +319,8 @@ const selectStyle = async (style) => {
 
 let mainSvgEle = null;
 const styleManager = new StyleManager();
-const initVarFromTexture = async (jersy) => {
-  const svgText = await fetch(jersy.svg).then((res) =>
+const initVarFromTexture = async (jersey) => {
+  const svgText = await fetch(jersey.svg).then((res) =>
     res.text()
   );
   const parser = new DOMParser();
@@ -332,7 +332,7 @@ const initVarFromTexture = async (jersy) => {
   }
   mainSvgCtn.appendChild(mainSvgEle);
   // 获取颜色列表
-  const { styles, color } = styleManager.getColorByType(jersy.name, mainSvgEle);
+  const { styles, color } = styleManager.getColorByType(jersey.name, mainSvgEle);
   jerseyParts.value = styles;
   colors.value = color
 

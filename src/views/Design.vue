@@ -22,31 +22,31 @@
           <div class="absolute  right-4 top-4">
             <div class="flex bg-dark rounded-full">
               <button 
-                @click="switchClothType('top')"
+                @click="switchClothType('jersey')"
                 :class="[
                   'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300',
-                  clothType === 'top' 
+                  clothType === 'jersey' 
                     ? 'bg-primary text-white' 
                     : 'text-gray-400 hover:text-gray-200'
                 ]"
-                :disabled="!enabledTypes.includes('top')"
-                :title="enabledTypes.includes('top') ? '上衣' : '无同款类型'"
+                :disabled="!enabledTypes.includes('jersey')"
+                :title="enabledTypes.includes('jersey') ? '上衣' : '无同款类型'"
               >
-                <svg fill="currentColor" width="50%" height="50%" class="text-lg" :class="{'opacity-50': !enabledTypes.includes('top')}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3811"><path d="M716.9 112H608.4a4 4 0 0 0-4 3.8c-2 49.1-42.6 88.2-92.4 88.2s-90.5-39.1-92.5-88.2a4 4 0 0 0-4-3.8H311.4c-1.6 0-151.7 120.1-209.3 166.2a40 40 0 0 0-12.7 44.6l66.1 187a40 40 0 0 0 59.7 20.1l49.9-32.9v375a40 40 0 0 0 40 40h413.7a40 40 0 0 0 40-40V497l49.9 32.9a40 40 0 0 0 59.7-20.1l66.2-187.3a40.1 40.1 0 0 0-12.4-44.3C865.7 232 718.5 112 716.9 112z" p-id="3812"></path></svg>
+                <svg fill="currentColor" width="50%" height="50%" class="text-lg" :class="{'opacity-50': !enabledTypes.includes('jersey')}" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3811"><path d="M716.9 112H608.4a4 4 0 0 0-4 3.8c-2 49.1-42.6 88.2-92.4 88.2s-90.5-39.1-92.5-88.2a4 4 0 0 0-4-3.8H311.4c-1.6 0-151.7 120.1-209.3 166.2a40 40 0 0 0-12.7 44.6l66.1 187a40 40 0 0 0 59.7 20.1l49.9-32.9v375a40 40 0 0 0 40 40h413.7a40 40 0 0 0 40-40V497l49.9 32.9a40 40 0 0 0 59.7-20.1l66.2-187.3a40.1 40.1 0 0 0-12.4-44.3C865.7 232 718.5 112 716.9 112z" p-id="3812"></path></svg>
               </button>
 
               <button 
-                @click="switchClothType('pants')"
+                @click="switchClothType('pant')"
                 :class="[
                   'w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300',
-                  clothType === 'pants' 
+                  clothType === 'pant' 
                     ? 'bg-primary text-white' 
                     : 'text-gray-400 hover:text-gray-200'
                 ]"
-                :disabled="!enabledTypes.includes('pants')"
-                :title="enabledTypes.includes('pants') ? '裤子' : '无同款类型'"
+                :disabled="!enabledTypes.includes('pant')"
+                :title="enabledTypes.includes('pant') ? '裤子' : '无同款类型'"
               >
-                <svg width="50%" height="50%" class="text-lg" :class="{'opacity-50': !enabledTypes.includes('top')}" t="1740807255007" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4709" ><path d="M750.933333 218.453333l-34.133333-167.253333v-34.133333c0-10.24-6.826667-17.066667-17.066667-17.066667H614.4v47.786667c0 10.24-6.826667 17.066667-17.066667 17.066666s-17.066667-6.826667-17.066666-17.066666V0h-136.533334v47.786667c0 10.24-6.826667 17.066667-17.066666 17.066666s-17.066667-6.826667-17.066667-17.066666V0H324.266667c-3.413333 0-10.24 3.413333-13.653334 3.413333S307.2 13.653333 307.2 17.066667v30.72l-34.133333 170.666666v3.413334l34.133333 785.066666c0 10.24 6.826667 17.066667 17.066667 17.066667h136.533333c10.24 0 17.066667-6.826667 17.066667-17.066667l34.133333-512 34.133333 512c0 10.24 6.826667 17.066667 17.066667 17.066667h136.533333c10.24 0 17.066667-6.826667 17.066667-17.066667l34.133333-785.066666v-3.413334z" fill="currentColor" p-id="4710" ></path></svg>
+                <svg width="50%" height="50%" class="text-lg" :class="{'opacity-50': !enabledTypes.includes('jersey')}" t="1740807255007" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4709" ><path d="M750.933333 218.453333l-34.133333-167.253333v-34.133333c0-10.24-6.826667-17.066667-17.066667-17.066667H614.4v47.786667c0 10.24-6.826667 17.066667-17.066667 17.066666s-17.066667-6.826667-17.066666-17.066666V0h-136.533334v47.786667c0 10.24-6.826667 17.066667-17.066666 17.066666s-17.066667-6.826667-17.066667-17.066666V0H324.266667c-3.413333 0-10.24 3.413333-13.653334 3.413333S307.2 13.653333 307.2 17.066667v30.72l-34.133333 170.666666v3.413334l34.133333 785.066666c0 10.24 6.826667 17.066667 17.066667 17.066667h136.533333c10.24 0 17.066667-6.826667 17.066667-17.066667l34.133333-512 34.133333 512c0 10.24 6.826667 17.066667 17.066667 17.066667h136.533333c10.24 0 17.066667-6.826667 17.066667-17.066667l34.133333-785.066666v-3.413334z" fill="currentColor" p-id="4710" ></path></svg>
               </button>
 
               <button 
@@ -99,42 +99,65 @@
         </div>
         <!-- 设计工具区域 -->
         <div class="lg:h-screen md:h-[70vh] lg:col-span-4 flex flex-col border-container">
-          <div class="flex items-center justify-center p-2">
-            <!-- <TabButton
-              title="Choose Jersey Style"
-              type="款式"
-              :active="currentTab === 'style'" 
-              :icon="['fas', 'tshirt']"
-              @click="() => setTab('style')" 
-            /> -->
-            <TabButton 
-              title="Edit color" 
-              type="颜色"
-              :active="currentTab === 'color'" 
-              :icon="['fas', 'palette']"
-              @click="() => setTab('color')" 
-            />
-            <TabButton 
-              title="Edit text" 
-              type="文字"
-              :active="currentTab === 'text'" 
-              :icon="['fas', 'font']"
-              @click="() => setTab('text')" 
-            />
-            <TabButton 
-              title="Edit Logo" 
-              type="Logo"
-              :active="currentTab === 'logo'" 
-              :icon="['fas', 'image']"
-              @click="() => setTab('logo')" 
-            />
-            <TabButton 
-              title="Submit An Order" 
-              type="订单"
-              :active="currentTab === 'order'" 
-              :icon="['fas', 'cart-plus']"
-              @click="() => setTab('order')" 
-            />
+          <div class="relative">
+            <button v-if="currentTab=='order'"
+              @click="setTab('text')"
+               class="bookmark bookmarkBg text-white">
+              <font-awesome-icon :icon="['fas', 'arrow-left']" class="text-xl" />
+            </button>
+            <div v-else class="bookmark bookmarkBg text-white text-center">
+              上衣
+            </div>
+            <button class="absolute right-4 top-[1.5rem] h-10 text-white" title="订单"
+             @click="() => setTab('order')" >
+              <font-awesome-icon :icon="['fas', 'cart-plus']" class="text-2xl" />
+              订单
+            </button>
+          </div>
+          <div class="flex items-center justify-between px-5 mt-4" v-if="currentTab !== 'order'">
+            <button class="" title="切换" :disabled="clothType !== 'suit'">
+              <font-awesome-icon :icon="['fas', 'backward']" class="text-xl text-white" />
+            </button>
+            <div class="flex items-center justify-between w-[60%]">
+              <!-- <TabButton
+                title="Choose Jersey Style"
+                type="款式"
+                :active="currentTab === 'style'" 
+                :icon="['fas', 'tshirt']"
+                @click="() => setTab('style')" 
+              /> -->
+              <TabButton 
+                title="Edit color" 
+                type="颜色"
+                :active="currentTab === 'color'" 
+                :icon="['fas', 'palette']"
+                @click="() => setTab('color')" 
+              />
+              <TabButton 
+                title="Edit text" 
+                type="文字"
+                :active="currentTab === 'text'" 
+                :icon="['fas', 'font']"
+                @click="() => setTab('text')" 
+              />
+              <TabButton 
+                title="Edit Logo" 
+                type="Logo"
+                :active="currentTab === 'logo'" 
+                :icon="['fas', 'image']"
+                @click="() => setTab('logo')" 
+              />
+              <!-- <TabButton 
+                title="Submit An Order" 
+                type="订单"
+                :active="currentTab === 'order'" 
+                :icon="['fas', 'cart-plus']"
+                @click="() => setTab('order')" 
+              /> -->
+            </div>
+            <button class="" title="切换" :disabled="clothType !== 'suit'">
+              <font-awesome-icon :icon="['fas', 'forward']" class="text-xl text-white" />
+            </button>
           </div>
           <div class="flex-1 overflow-y-auto pt-2 px-8 pb-6 text-gray-400 text-sm">
             <StyleTab v-if="currentTab === 'style'" :jerseyStyles="jerseyStyles" :selectedStyle="selectedStyle"
@@ -148,7 +171,8 @@
         </div>
       </div>
     </div>
-    <div id="svgCtn"></div>
+    <div id="pantCtn" class="svgCtn"></div>
+    <div id="jerseyCtn" class="svgCtn"></div>
     <div id="mainSvgCtn" style="pointer-events: none;"></div>
   </div>
 </template>
@@ -176,6 +200,10 @@ const props = defineProps({
   }
 });
 
+const currentProduct = ref(null);
+// 添加服装类型状态
+const clothType = ref('jersey'); // 默认选中上衣
+const enabledTypes = ref(['jersey', 'suit']); // 示例：只启用上衣和套装
 // 状态定义
 const route = useRoute();
 const router = useRouter();
@@ -235,8 +263,9 @@ const setTab = (tab) => {
 };
 
 // SVG相关方法
-const initVarFromTexture = async (jersy) => {
-  const svgText = await fetch(jersy.svg).then((res) => res.text());
+const initVarFromTexture = async (jersey) => {
+  return;
+  const svgText = await fetch(jersey.svg).then((res) => res.text());
   const parser = new DOMParser();
   const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
   mainSvgEle = svgDoc.documentElement;
@@ -247,7 +276,7 @@ const initVarFromTexture = async (jersy) => {
   mainSvgCtn.appendChild(mainSvgEle);
 
   // 获取颜色列表
-  const { styles, color } = styleManager.getColorByType(jersy.name, mainSvgEle);
+  const { styles, color } = styleManager.getColorByType(jersey.name, mainSvgEle);
   jerseyParts.value = styles;
   colors.value = color;
 
@@ -431,13 +460,18 @@ watch(
 // 生命周期钩子
 onMounted(async () => {
   const data = await getDataForRender();
+  console.log(data);
+  currentProduct.value = data;
+  clothType.value = data.clothType;
+  enabledTypes.value = data.clothType === 'suit' ? ['suit', 'jersey', 'pant'] : [data.clothType];
   if (data) {
     world = new World(glCanvas.value, data.scene);
     window.world = world;
 
-    world.addEventListener('load_editSvg', () => {
+    world.addEventListener('load_editSvg', (type) => {
       initVarFromTexture(selectedStyle.value);
-      world.svgEditor.svgCanvas.bind('delete', (e, target) => {
+      const svgCanvas = world.resource[type].svgEditor.svgCanvas;
+      svgCanvas.bind('delete', (e, target) => {
         const { id, type } = target;
         if (type === 'text') {
           const i = texts.value.findIndex(v => v.id === id);
@@ -448,7 +482,7 @@ onMounted(async () => {
           logos.value.splice(i, 1);
         }
       });
-      world.svgEditor.svgCanvas.bind('selected', (e, target) => {
+      svgCanvas.bind('selected', (e, target) => {
         viewSelectionToGui(target);
       });
     });
@@ -477,15 +511,11 @@ const restoreCancel = () => {
   }
 };
 
-// 添加服装类型状态
-const clothType = ref('top'); // 默认选中上衣
-const enabledTypes = ref(['top', 'suit']); // 示例：只启用上衣和套装
-
 // 切换服装类型
 const switchClothType = (type) => {
   if (enabledTypes.value.includes(type)) {
     clothType.value = type;
-    // 这里可以添加切换服装类型的相关逻辑
+    world.switchClothType(type);
   }
 };
 
@@ -498,7 +528,7 @@ const switchClothType = (type) => {
   height: 100%;
 }
 
-#svgCtn,
+.svgCtn,
 #mainSvgCtn {
   position: absolute;
   top: 0;
@@ -542,5 +572,16 @@ const switchClothType = (type) => {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.bookmark {
+  width: 8rem;
+  height: 2rem;
+  margin: 1.5rem 0 0.5rem -0.2rem;
+  line-height: 2rem;
+}
+.bookmarkBg {
+  background: url('/images/assets/1.svg');
+  background-size: 100% 100%;
 }
 </style>

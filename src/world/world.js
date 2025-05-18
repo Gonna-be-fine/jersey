@@ -88,7 +88,7 @@ export class World extends EventDispatch {
       this.resizeObserver = resizeObserver;
     }
 
-    this.scene.add(new THREE.AxesHelper(1));
+    // this.scene.add(new THREE.AxesHelper(1));
 
     // init DecalManager
     this.decalManager = new DecalManager(this);
@@ -217,10 +217,25 @@ export class World extends EventDispatch {
     animate();
   }
 
+  loadAsync() {
+    const loadModels = modelList.map(model => {
+      return new Promise((resolve, reject) => {
+        loader.load(model.url, (gltf) => {
+          console.log('Loaded', model.url);
+          resolve(gltf);
+        }, undefined, (error) => {
+          console.error('Error loading', model.url, error);
+          reject(error);
+        });
+      });
+    });
+  }
+
   /**
    * @description: 导入衣服模型
    */
   importModel() {
+    // set loaders
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('/lib/draco/');
@@ -229,47 +244,49 @@ export class World extends EventDispatch {
     loader.setMeshoptDecoder(MeshoptDecoder);
     loader.setDRACOLoader(dracoLoader);
     loader.setKTX2Loader(ktxLoader);
-    loader.load(this.options.model.url, (gltf) => {
-      this.cloth = gltf.scene;
-      if(this.options.model.position) {
-        this.cloth.position.copy(this.options.model.position);
-      }
-      console.log(gltf.scene);
-      this.scene.add(gltf.scene);
-      this.cloth.name = 'cloth';
-      this.cloth.children.forEach((v) => {
-        if (v.isMesh) {
-          // 设置normalMap为空，去除DirectionalLight对衣服的会有白色块
-          v.material.normalMap = null;
-          if (!this.clothMaterial) {
-            this.clothMaterial = v.material;
+
+    const modelList = this.options.model;
+    this.resource = {};
+    let index = 0;
+    modelList.forEach(model => {
+      loader.load(model.url, (gltf) => {
+        const clothGltf = gltf.scene;
+        this.resource[model.type] = {
+          model: clothGltf
+        }
+        if(model.position) {
+          clothGltf.position.copy(model.position);
+        }
+        console.log(gltf.scene);
+        this.scene.add(gltf.scene);
+        clothGltf.name = model.type;
+        clothGltf.children.forEach((v) => {
+          if (v.isMesh) {
+            v.userData.type = model.type;
+            // 设置normalMap为空，去除DirectionalLight对衣服的会有白色块
+            v.material.normalMap = null;
+            if (!this.resource[model.type].material) {
+              this.resource[model.type].material = v.material;
+            }
+            v.material = this.resource[model.type].material;
           }
-          v.material = this.clothMaterial;
+        });
+        this.pathMesh(model);
+        // dispose draco
+        index++;
+        if(index >= modelList.length) {
+          dracoLoader.dispose();
         }
       });
-      // // 找到mesh gui
-      // this.cloth.children.forEach(v => {
-      //   const fd = this.gui.addFolder(v.name);
-      //   const params = {
-      //     color: '#ffffff',
-      //   };
-      //   fd
-      //   .addColor(params, 'color')
-      //   .name('Color')
-      //   .onChange((color) =>{
-      //     v.material.color = new THREE.Color(color);
-      //   });
-      // })
-      dracoLoader.dispose();
-
-      this.pathMesh();
-    });
+    })    
   }
 
-  mutateEditor() {
-    this.svgEditor = new SvgEditor(this);
-    this.svgEditor.setSvgString({ url: this.options.texture.edit });
-
+  mutateEditor(options) {
+    const { texture, type } = options;
+    const svgEditor = new SvgEditor(this, type);
+    this.resource[type].svgEditor = svgEditor;
+    svgEditor.setSvgString({ url: texture.edit });
+    
     // 观察器的配置（需要观察什么变动）
     const config = { attributes: true, childList: true, subtree: true };
     // 当观察到变动时执行的回调函数
@@ -287,29 +304,35 @@ export class World extends EventDispatch {
       console.log('changes')
       // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.svgroot.outerHTML);
       // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgString());
-      this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.svg2String());
+      this.resource[type].editTexManager.svgToTexture(svgEditor.svgCanvas.svg2String());
     }, 200);
 
     // 创建一个观察器实例并传入回调函数
     const observer = new MutationObserver(callback);
 
     // 以上述配置开始观察目标节点
-    const targetNode = this.svgEditor.svgCanvas.getSvgRoot();
+    const targetNode = svgEditor.svgCanvas.getSvgRoot();
     observer.observe(targetNode, config);
   }
 
   /**
    * @description: 配置衣服的uv和纹理
    */
-  pathMesh() {
-    this.mainTextManager = new ClothTexture({
-      img: this.options.texture.main,
+  pathMesh(options) {
+    const { texture, type } = options;
+    // cloth texture
+    const mainTextManager = new ClothTexture({
+      img: texture.main,
     });
-    this.editTextManager = new ClothTexture({ img: this.options.texture.edit });
+    const editTextManager = new ClothTexture({ img: texture.edit });
+    this.resource[type].mainTexManager = mainTextManager;
+    this.resource[type].editTexManager = editTextManager;
 
-    this.mutateEditor();
+    // 监听edit svg变化，更新纹理
+    this.mutateEditor(options);
 
-    this.cloth.traverse((v) => {
+    let firstMesh = null;
+    this.resource[type].model.traverse((v) => {
       if (!v.isMesh) return;
       v.geometry.setAttribute(
         'uvUnified',
@@ -319,14 +342,14 @@ export class World extends EventDispatch {
         'uvUnifiedEditor',
         v.geometry.attributes.uv1 || v.geometry.attributes.uv
       );
-      if (!this.firstMesh) {
-        this.firstMesh = v;
+      if (!firstMesh) {
+        firstMesh = v;
       }
     });
     this.textureModel(
-      this.firstMesh,
-      this.mainTextManager.canvasTexture,
-      this.editTextManager.canvasTexture,
+      firstMesh,
+      this.resource[type].mainTexManager.canvasTexture,
+      this.resource[type].editTexManager.canvasTexture,
       'MultiplyMixDiffuse'
     );
   }
@@ -339,7 +362,7 @@ export class World extends EventDispatch {
    * @param {string} type 渲染类型
    */
   textureModel(mesh, unifiedTexture, editorTexture, type) {
-    const material = this.clothMaterial;
+    const material = mesh.material;
     material.customProgramCacheKey = function () {
       return this.name;
     };
@@ -458,9 +481,41 @@ export class World extends EventDispatch {
           #endif
         `
       );
-      this.uniforms = m.uniforms;
+      material.uniforms = m.uniforms;
     };
     material.needsUpdate = true;
+  }
+
+  switchClothType(type) {
+    if(type === 'suit') {
+      this.resource.pant.model.visible = true;
+      this.resource.jersey.model.visible = true;
+      this.updateCameraAndControls(this.scene);
+    }else{
+      for(let key in this.resource) {
+        this.resource[key].model.visible = false;
+      }
+      this.resource[type].model.visible = true;
+      this.updateCameraAndControls(this.resource[type].model);
+    }
+  }
+
+  updateCameraAndControls(group) {
+    const box = new THREE.Box3().setFromObject(group);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+  
+    const fov = this.camera.fov * (Math.PI / 180);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const distance = maxDim / (2 * Math.tan(fov / 2)) * 1.8;
+  
+    this.camera.position.set(center.x, center.y, center.z + distance);
+    this.camera.lookAt(center);
+  
+    this.controls.target.copy(center);
+    this.controls.update();
   }
 
   initGui() {
@@ -521,11 +576,6 @@ export class World extends EventDispatch {
     //   this.svgEditor.destroy();
     // }
 
-    // 清理纹理管理器
-    if (this.mainTextManager) {
-      this.mainTextManager.destroy();
-    }
-
     // 清空场景
     if (this.scene) {
       while(this.scene.children.length > 0) { 
@@ -538,8 +588,7 @@ export class World extends EventDispatch {
     this.camera = null;
     this.renderer = null;
     this.controls = null;
-    this.svgEditor = null;
-    this.mainTextManager = null;
+    this.resource = null;
 
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div @click="onClick" class="p-2 bg-dark rounded-lg mr-6 cursor-pointer">
+  <div @click="onClick" class="p-2 bg-dark rounded-lg cursor-pointer">
     <button 
       :class="[
         'tab-button mr-5 focus:outline-none w-8 h-8 flex items-center justify-center',

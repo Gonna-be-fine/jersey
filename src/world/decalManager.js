@@ -1,8 +1,11 @@
 import * as THREE from 'three';
+import { Raycaster, Vector2 } from 'three';
 
 class DecalManager {
   constructor(world) {
     this.world = world;
+    this.raycast = new Raycaster();
+    this.pointer = new Vector2();
     this.init();
   }
 
@@ -86,8 +89,41 @@ class DecalManager {
     // this.updateTexture();
   }
   delegate(e) {
-    this.world.svgEditor && this.world.svgEditor.onDelegate(this.world.renderer.domElement, e, this.mouse);
+    if(this.world.resource){
+      this.getRayMesh(e)
+      if(!this.intersectObjectType) return;
+      this.world.resource[this.intersectObjectType]?.svgEditor.onDelegate(this.world.renderer.domElement, e, this.mouse);
+    }
+    // this.world.svgEditor && this.world.svgEditor.onDelegate(this.world.renderer.domElement, e, this.mouse);
   }
+
+  getRayMesh(event) {
+    // 1. 获取 canvas 的边界矩形，考虑滚动条的影响
+    const rect = this.el.getBoundingClientRect();
+
+    // 2. 计算鼠标相对于 canvas 左上角的坐标
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    this.pointer.x = (x / this.el.clientWidth ) * 2 - 1;
+		this.pointer.y = - (y / this.el.clientHeight ) * 2 + 1;
+
+    this.raycast.setFromCamera(this.pointer, this.world.camera);
+		const intersects = this.raycast.intersectObject(this.world.scene);
+    this.intersectObjectType = '';
+    if(intersects.length > 0 && this.getParentGroup(intersects[0].object).visible) {
+      const mesh = intersects[0].object;
+      this.intersectObjectType = mesh.userData.type;
+      console.log(intersects[0])
+    }
+  }
+
+  getParentGroup(object) {
+    if(object.isGroup) {
+      return object;
+    }
+    return this.getParentGroup(object.parent);
+  }
+
   delegateDragOver(e) {
     e.preventDefault();
     e.stopPropagation();
