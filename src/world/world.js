@@ -10,6 +10,7 @@ import { SvgEditor } from './SvgEditor';
 import { throttle } from 'lodash';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KTX2Loader } from 'three/examples/jsm/Addons.js';
+import FabricEditor from './editor/fabricEditor';
 
 export class World extends EventDispatch {
   constructor(dom, options) {
@@ -78,7 +79,7 @@ export class World extends EventDispatch {
       this.camera.aspect = this.width / this.height;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.width, this.height);
-      this.decalManager.resize();
+      // this.decalManager.resize();
     };
     if(!this.glDom){
       window.addEventListener('resize', this.onWindowResize, false);
@@ -91,7 +92,7 @@ export class World extends EventDispatch {
     // this.scene.add(new THREE.AxesHelper(1));
 
     // init DecalManager
-    this.decalManager = new DecalManager(this);
+    // this.decalManager = new DecalManager(this);
 
     // animation
     this.clock = new THREE.Clock();
@@ -211,7 +212,7 @@ export class World extends EventDispatch {
 
       const delta = this.clock.getDelta();
       this.controls.update(delta);
-      this.decalManager.render();
+      // this.decalManager.render();
       this.renderer.render(this.scene, this.camera);
     };
     animate();
@@ -321,15 +322,11 @@ export class World extends EventDispatch {
   pathMesh(options) {
     const { texture, type } = options;
     // cloth texture
-    const mainTextManager = new ClothTexture({
-      img: texture.main,
-    });
     const editTextManager = new ClothTexture({ img: texture.edit });
-    this.resource[type].mainTexManager = mainTextManager;
     this.resource[type].editTexManager = editTextManager;
 
-    // 监听edit svg变化，更新纹理
-    this.mutateEditor(options);
+    const fabricEditor = new FabricEditor(this, { type, url: options.texture.main });
+    this.resource[type].fabricEditor = fabricEditor;
 
     let firstMesh = null;
     this.resource[type].model.traverse((v) => {
@@ -348,8 +345,8 @@ export class World extends EventDispatch {
     });
     this.textureModel(
       firstMesh,
-      this.resource[type].mainTexManager.canvasTexture,
-      this.resource[type].editTexManager.canvasTexture,
+      this.resource[type].fabricEditor.texture,
+      editTextManager.canvasTexture,
       'MultiplyMixDiffuse'
     );
   }
@@ -500,6 +497,7 @@ export class World extends EventDispatch {
     }
   }
 
+  // 根据模型包围盒聚焦
   updateCameraAndControls(group) {
     const box = new THREE.Box3().setFromObject(group);
     const center = new THREE.Vector3();

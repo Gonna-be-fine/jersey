@@ -171,8 +171,8 @@
         </div>
       </div>
     </div>
-    <div id="pantCtn" class="svgCtn"></div>
-    <div id="jerseyCtn" class="svgCtn"></div>
+    <canvas id="pantCtn" class="svgCtn"></canvas>
+    <canvas id="jerseyCtn" class="svgCtn"></canvas>
     <div id="mainSvgCtn" style="pointer-events: none;"></div>
   </div>
 </template>
@@ -536,8 +536,8 @@ const switchClothType = (type) => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  opacity: 0;
-  z-index: -1;
+  opacity: 1;
+  z-index: 99;
 }
 
 /* 自定义滚动条样式 */
