@@ -171,9 +171,11 @@
         </div>
       </div>
     </div>
-    <canvas id="pantCtn" class="svgCtn"></canvas>
-    <canvas id="jerseyCtn" class="svgCtn"></canvas>
-    <div id="mainSvgCtn" style="pointer-events: none;"></div>
+    <div class="svgCtn">
+      <canvas id="pantCtn"></canvas>
+      <canvas id="jerseyCtn"></canvas>
+    </div>
+    <!-- <div id="mainSvgCtn" style="pointer-events: none;"></div> -->
   </div>
 </template>
 
@@ -528,13 +530,10 @@ const switchClothType = (type) => {
   height: 100%;
 }
 
-.svgCtn,
-#mainSvgCtn {
+.svgCtn {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0%;
   overflow: hidden;
   opacity: 1;
   z-index: 99;

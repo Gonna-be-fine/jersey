@@ -6,8 +6,6 @@ import { DecalManager } from './decalManager';
 import EventDispatch from '../utils/EventDispatch';
 import { Lights, Lights1 } from './config';
 import { ClothTexture } from './ClothTexture';
-import { SvgEditor } from './SvgEditor';
-import { throttle } from 'lodash';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KTX2Loader } from 'three/examples/jsm/Addons.js';
 import FabricEditor from './editor/fabricEditor';
@@ -32,11 +30,11 @@ export class World extends EventDispatch {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
-    if(!this.glDom) {
+    if (!this.glDom) {
       document.body.appendChild(this.renderer.domElement);
       this.renderer.domElement.style.position = 'absolute';
-    }else{
-      this.glDom.appendChild(this.renderer.domElement)
+    } else {
+      this.glDom.appendChild(this.renderer.domElement);
     }
     this.renderer.setClearColor(this.options.backgroundColor || '#1e1e1e');
     // 颜色矫正
@@ -53,9 +51,9 @@ export class World extends EventDispatch {
       1000
     );
     // this.camera.position.z = 120;
-    if(this.options.cameraPosition) {
+    if (this.options.cameraPosition) {
       this.camera.position.copy(this.options.cameraPosition);
-    }else{
+    } else {
       this.camera.position.set(
         -0.009666748088079795,
         0.1459023549040876,
@@ -81,10 +79,10 @@ export class World extends EventDispatch {
       this.renderer.setSize(this.width, this.height);
       // this.decalManager.resize();
     };
-    if(!this.glDom){
+    if (!this.glDom) {
       window.addEventListener('resize', this.onWindowResize, false);
-    }else{
-      const resizeObserver = new ResizeObserver(this.onWindowResize)
+    } else {
+      const resizeObserver = new ResizeObserver(this.onWindowResize);
       resizeObserver.observe(this.glDom);
       this.resizeObserver = resizeObserver;
     }
@@ -219,15 +217,20 @@ export class World extends EventDispatch {
   }
 
   loadAsync() {
-    const loadModels = modelList.map(model => {
+    const loadModels = modelList.map((model) => {
       return new Promise((resolve, reject) => {
-        loader.load(model.url, (gltf) => {
-          console.log('Loaded', model.url);
-          resolve(gltf);
-        }, undefined, (error) => {
-          console.error('Error loading', model.url, error);
-          reject(error);
-        });
+        loader.load(
+          model.url,
+          (gltf) => {
+            console.log('Loaded', model.url);
+            resolve(gltf);
+          },
+          undefined,
+          (error) => {
+            console.error('Error loading', model.url, error);
+            reject(error);
+          }
+        );
       });
     });
   }
@@ -240,8 +243,8 @@ export class World extends EventDispatch {
     const loader = new GLTFLoader();
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath('/lib/draco/');
-    const ktxLoader = new KTX2Loader();			
-    ktxLoader.setTranscoderPath( '/lib/basis/' ).detectSupport( this.renderer );
+    const ktxLoader = new KTX2Loader();
+    ktxLoader.setTranscoderPath('/lib/basis/').detectSupport(this.renderer);
     loader.setMeshoptDecoder(MeshoptDecoder);
     loader.setDRACOLoader(dracoLoader);
     loader.setKTX2Loader(ktxLoader);
@@ -249,13 +252,13 @@ export class World extends EventDispatch {
     const modelList = this.options.model;
     this.resource = {};
     let index = 0;
-    modelList.forEach(model => {
+    modelList.forEach((model) => {
       loader.load(model.url, (gltf) => {
         const clothGltf = gltf.scene;
         this.resource[model.type] = {
-          model: clothGltf
-        }
-        if(model.position) {
+          model: clothGltf,
+        };
+        if (model.position) {
           clothGltf.position.copy(model.position);
         }
         console.log(gltf.scene);
@@ -275,45 +278,78 @@ export class World extends EventDispatch {
         this.pathMesh(model);
         // dispose draco
         index++;
-        if(index >= modelList.length) {
+        if (index >= modelList.length) {
           dracoLoader.dispose();
         }
       });
-    })    
+    });
+    this.mutateEditor();
   }
 
-  mutateEditor(options) {
-    const { texture, type } = options;
-    const svgEditor = new SvgEditor(this, type);
-    this.resource[type].svgEditor = svgEditor;
-    svgEditor.setSvgString({ url: texture.edit });
-    
-    // 观察器的配置（需要观察什么变动）
-    const config = { attributes: true, childList: true, subtree: true };
-    // 当观察到变动时执行的回调函数
-    const callback = throttle((mutationsList, observer) => {
-      // Use traditional 'for loops' for IE 11
-      // for (let mutation of mutationsList) {
-      //   if (mutation.type === 'childList') {
-      //     console.log('A child node has been added or removed.');
-      //   } else if (mutation.type === 'attributes') {
-      //     console.log(
-      //       'The ' + mutation.attributeName + ' attribute was modified.'
-      //     );
-      //   }
-      // }
-      console.log('changes')
-      // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.svgroot.outerHTML);
-      // this.editTextManager.svgToTexture(this.svgEditor.svgCanvas.getSvgString());
-      this.resource[type].editTexManager.svgToTexture(svgEditor.svgCanvas.svg2String());
-    }, 200);
+  mutateEditor() {
+    this.raycaster = new THREE.Raycaster();
+    this.mouse = new THREE.Vector2();
 
-    // 创建一个观察器实例并传入回调函数
-    const observer = new MutationObserver(callback);
-
-    // 以上述配置开始观察目标节点
-    const targetNode = svgEditor.svgCanvas.getSvgRoot();
-    observer.observe(targetNode, config);
+    const eventList = [
+      { type: 'mousemove', method: '_onMouseMove'},
+      { type: 'mousedown', method: '_onMouseDown', isDrag:true},
+      { type: 'mouseup', method: '_onMouseUp', isDrag:false},
+      { type: 'touchstart', method: '_onTouchStart', isDrag:true},
+      { type: 'touchmove', method: '_onTouchMove'},
+      { type: 'touchend', method: '_onTouchEnd', isDrag:false},
+    ];
+    eventList.forEach((info) => {
+      this.renderer.domElement.addEventListener(info.type, (event) => {
+        const hasDragKey = 'isDrag' in info;
+        if(hasDragKey) {
+          this.isDragging = info.isDrag
+        }
+        if((info.type === 'mousemove' || info.type === 'touchmove') && !this.isDragging) return;
+        const rect = this.renderer.domElement.getBoundingClientRect(); // canvas 相对于视口的位置
+        // 计算标准设备坐标 (-1 到 1)
+        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // 设置 raycaster
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        // 检测交互对象
+        const intersects = this.raycaster.intersectObjects(this.scene.children);
+        if (intersects.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          if(hasDragKey) this.controls.enabled = !this.isDragging;
+          const clicked = intersects[0].object;
+          const fabricCanvas = this.resource[clicked.userData.type].fabricEditor.canvas;
+          const uv = intersects[0].uv1 || intersects[0].uv;
+          if (!uv) {
+            console.log('no uv');
+            return;
+          }
+  
+          const offsetX = uv.x * fabricCanvas.getWidth();
+          const offsetY = uv.y * fabricCanvas.getHeight();
+          // console.log(info.type, offsetX, offsetY);
+          const canvasRect = fabricCanvas._offset || fabricCanvas.upperCanvasEl.getBoundingClientRect();
+          const simEvt = new MouseEvent(event.type, {
+            clientX: canvasRect.left + offsetX,
+            clientY: canvasRect.top + offsetY,
+            // offsetX,
+            // offsetY,
+            // pageX: canvasRect.left + offsetX,
+            // pageY: canvasRect.top + offsetY,
+            button: event.button,
+          });
+          fabricCanvas[info.method](simEvt);
+        }else {
+          this.controls.enabled = true
+          if(info.type === 'mousedown' || info.type === 'touchstart') {
+            // 取消选中
+            Object.entries(world.resource).forEach(([key, value]) => {
+                value.fabricEditor.clearSelection();
+            })
+          }
+        }
+      });
+    })
   }
 
   /**
@@ -325,7 +361,10 @@ export class World extends EventDispatch {
     const editTextManager = new ClothTexture({ img: texture.edit });
     this.resource[type].editTexManager = editTextManager;
 
-    const fabricEditor = new FabricEditor(this, { type, url: options.texture.main });
+    const fabricEditor = new FabricEditor(this, {
+      type,
+      url: options.texture.main,
+    });
     this.resource[type].fabricEditor = fabricEditor;
 
     let firstMesh = null;
@@ -484,12 +523,12 @@ export class World extends EventDispatch {
   }
 
   switchClothType(type) {
-    if(type === 'suit') {
+    if (type === 'suit') {
       this.resource.pant.model.visible = true;
       this.resource.jersey.model.visible = true;
       this.updateCameraAndControls(this.scene);
-    }else{
-      for(let key in this.resource) {
+    } else {
+      for (let key in this.resource) {
         this.resource[key].model.visible = false;
       }
       this.resource[type].model.visible = true;
@@ -504,14 +543,14 @@ export class World extends EventDispatch {
     box.getCenter(center);
     const size = new THREE.Vector3();
     box.getSize(size);
-  
+
     const fov = this.camera.fov * (Math.PI / 180);
     const maxDim = Math.max(size.x, size.y, size.z);
-    const distance = maxDim / (2 * Math.tan(fov / 2)) * 1.8;
-  
+    const distance = (maxDim / (2 * Math.tan(fov / 2))) * 1.8;
+
     this.camera.position.set(center.x, center.y, center.z + distance);
     this.camera.lookAt(center);
-  
+
     this.controls.target.copy(center);
     this.controls.update();
   }
@@ -532,9 +571,9 @@ export class World extends EventDispatch {
   }
 
   destroy() {
-    if(!this.glDom){
+    if (!this.glDom) {
       window.removeEventListener('resize', this.onWindowResize, false);
-    }else{
+    } else {
       this.resizeObserver.disconnect();
     }
 
@@ -546,7 +585,7 @@ export class World extends EventDispatch {
         }
         if (object.material) {
           if (Array.isArray(object.material)) {
-            object.material.forEach(material => material.dispose());
+            object.material.forEach((material) => material.dispose());
           } else {
             object.material.dispose();
           }
@@ -569,14 +608,9 @@ export class World extends EventDispatch {
       cancelAnimationFrame(this.animationFrameId);
     }
 
-    // // 清理编辑器相关资源
-    // if (this.svgEditor) {
-    //   this.svgEditor.destroy();
-    // }
-
     // 清空场景
     if (this.scene) {
-      while(this.scene.children.length > 0) { 
+      while (this.scene.children.length > 0) {
         this.scene.remove(this.scene.children[0]);
       }
     }
@@ -587,6 +621,5 @@ export class World extends EventDispatch {
     this.renderer = null;
     this.controls = null;
     this.resource = null;
-
   }
 }

@@ -48,13 +48,13 @@ class DecalManager {
     if (
       [
         'click',
-        'mousedown',
-        'mouseup',
-        'mousemove',
-        'mouseover',
-        'mouseout',
-        'mouseenter',
-        'mouseleave',
+        // 'mousedown',
+        // 'mouseup',
+        // 'mousemove',
+        // 'mouseover',
+        // 'mouseout',
+        // 'mouseenter',
+        // 'mouseleave',
       ].includes(e.type)
     ) {
       offsetX = e.offsetX || e.layerX;
@@ -84,6 +84,7 @@ class DecalManager {
       this.mouse.x = this.uvReadPixelArray[0] / 255;
       this.mouse.y = this.uvReadPixelArray[1] / 255;
     }
+    console.log(this.mouse.x, this.mouse.y);
     this.mouse.cursorOverCanvas = 0 !== this.mouse.x && 1 !== this.mouse.y;
     // console.log(this.mouse);
     // this.updateTexture();
@@ -100,7 +101,7 @@ class DecalManager {
   getRayMesh(event) {
     // 1. 获取 canvas 的边界矩形，考虑滚动条的影响
     const rect = this.el.getBoundingClientRect();
-
+ 
     // 2. 计算鼠标相对于 canvas 左上角的坐标
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -144,36 +145,37 @@ class DecalManager {
   }
 
   setupEvent() {
-    let events = ['click', 'mousemove', 'touchstart', 'touchmove', 'touchend'];
+    let events = ['click'];
+    // let events = ['click', 'mousemove', 'touchstart', 'touchmove', 'touchend'];
     for (let t = 0; t < events.length; t++) {
       this.el.addEventListener(events[t], (e) => {
         return this.updateUv(e);
       });
     }
 
-    events = [
-      'mousedown',
-      // 'pointerdown',
-      // 'pointerup',
-      'mousemove',
-      'dblclick',
-      'mouseup',
-      'touchstart',
-      // 'mousemove',
-      'touchmove',
-      'touchend',
-    ];
-    for (let i = 0; i < events.length; i++) {
-      this.el.addEventListener(events[i], (e) => {
-        return this.delegate(e);
-      });
-    }
-    this.el.addEventListener('dragover', (t) => {
-      return this.delegateDragOver(t);
-    });
-    this.el.addEventListener('drop', (t) => {
-      return this.delegateDrop(t);
-    });
+    // events = [
+    //   'mousedown',
+    //   // 'pointerdown',
+    //   // 'pointerup',
+    //   'mousemove',
+    //   'dblclick',
+    //   'mouseup',
+    //   'touchstart',
+    //   // 'mousemove',
+    //   'touchmove',
+    //   'touchend',
+    // ];
+    // for (let i = 0; i < events.length; i++) {
+    //   this.el.addEventListener(events[i], (e) => {
+    //     return this.delegate(e);
+    //   });
+    // }
+    // this.el.addEventListener('dragover', (t) => {
+    //   return this.delegateDragOver(t);
+    // });
+    // this.el.addEventListener('drop', (t) => {
+    //   return this.delegateDrop(t);
+    // });
   }
 
   render() {
