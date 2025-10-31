@@ -5,7 +5,6 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { DecalManager } from './decalManager';
 import EventDispatch from '../utils/EventDispatch';
 import { Lights, Lights1 } from './config';
-import { ClothTexture } from './ClothTexture';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KTX2Loader } from 'three/examples/jsm/Addons.js';
 import FabricEditor from './editor/fabricEditor';
@@ -252,7 +251,7 @@ export class World extends EventDispatch {
     const modelList = this.options.model;
     this.resource = {};
     let index = 0;
-    modelList.forEach((model) => {
+    modelList.forEach((model, i) => {
       loader.load(model.url, (gltf) => {
         const clothGltf = gltf.scene;
         this.resource[model.type] = {
@@ -280,6 +279,7 @@ export class World extends EventDispatch {
         index++;
         if (index >= modelList.length) {
           dracoLoader.dispose();
+          this.fire('model_loaded');
         }
       });
     });
@@ -358,13 +358,11 @@ export class World extends EventDispatch {
   pathMesh(options) {
     const { texture, type } = options;
     // cloth texture
-    const editTextManager = new ClothTexture({ img: texture.edit });
-    this.resource[type].editTexManager = editTextManager;
-
-    const fabricEditor = new FabricEditor(this, {
+    const _options = {
       type,
-      url: options.texture.main,
-    });
+      textureSvg: texture.main
+    }
+    const fabricEditor = new FabricEditor(this, _options);
     this.resource[type].fabricEditor = fabricEditor;
 
     let firstMesh = null;
@@ -385,7 +383,7 @@ export class World extends EventDispatch {
     this.textureModel(
       firstMesh,
       this.resource[type].fabricEditor.texture,
-      editTextManager.canvasTexture,
+      null,
       'MultiplyMixDiffuse'
     );
   }
@@ -522,22 +520,22 @@ export class World extends EventDispatch {
     material.needsUpdate = true;
   }
 
-  switchClothType(type) {
+  switchClothType(type, side) {
     if (type === 'suit') {
       this.resource.pant.model.visible = true;
       this.resource.jersey.model.visible = true;
-      this.updateCameraAndControls(this.scene);
+      this.updateCameraAndControls(this.scene, side);
     } else {
       for (let key in this.resource) {
         this.resource[key].model.visible = false;
       }
       this.resource[type].model.visible = true;
-      this.updateCameraAndControls(this.resource[type].model);
+      this.updateCameraAndControls(this.resource[type].model, side);
     }
   }
 
   // 根据模型包围盒聚焦
-  updateCameraAndControls(group) {
+  updateCameraAndControls(group, side) {
     const box = new THREE.Box3().setFromObject(group);
     const center = new THREE.Vector3();
     box.getCenter(center);
@@ -548,7 +546,11 @@ export class World extends EventDispatch {
     const maxDim = Math.max(size.x, size.y, size.z);
     const distance = (maxDim / (2 * Math.tan(fov / 2))) * 1.8;
 
-    this.camera.position.set(center.x, center.y, center.z + distance);
+    let z = center.z + distance;
+    if(side === 'back') {
+      z = -z;
+    }
+    this.camera.position.set(center.x, center.y, z);
     this.camera.lookAt(center);
 
     this.controls.target.copy(center);
@@ -568,6 +570,10 @@ export class World extends EventDispatch {
       .onChange((color) => {
         this.renderer.setClearColor(color);
       });
+  }
+
+  getSvgEditorByType(key) {
+    return this.resource[key]?.fabricEditor
   }
 
   destroy() {

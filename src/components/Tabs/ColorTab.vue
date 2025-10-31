@@ -6,7 +6,7 @@
     <div v-for="(part, index) in jerseyParts" :key="index" class="p-2 bg-dark rounded-lg">
       <label :for="'color-' + index" class="block mb-4">{{ part.name }}</label>
       <div class="mt-2 flex flex-wrap gap-2">
-        <button v-for="color in colors" :key="color" @click="() => setPart(index, color)" :class="['w-8 h-8 rounded-full', `${part.color === color ? 'ring-2 ring-offset-1 ring-white ring-offset-dark' : ''}`]"
+        <button v-for="color in colors" :key="color" @click="() => setColor(index, color)" :class="['w-8 h-8 rounded-full', `${part.color === color ? 'ring-2 ring-offset-1 ring-white ring-offset-dark' : ''}`]"
           :style="{ backgroundColor: color }"></button>
       </div>
     </div>
@@ -22,8 +22,8 @@ const props = defineProps({
 });
 const emit = defineEmits();
 
-const setPart = (index, color) => {
-  emit('setPart', index, color);
+const setColor = (index, color) => {
+  emit('setColor', index, color);
 };
 </script>
 

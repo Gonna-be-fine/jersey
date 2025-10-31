@@ -1,4 +1,5 @@
-const CodexTypes = ['Collar', 'Cuff', 'Base', 'Gradient_1_'];
+import { ColorPrevList } from "../configs";
+
 const CodexColor = [
   '#FF5733',
   '#33FF57',
@@ -27,146 +28,62 @@ export const fontOptions = [
     fontFile: '/fonts/LongCang.ttf'
   }
 ];
-const StrikerColor = ["#4A90E2", "#50E3C2", "#F39C12", "#8E44AD", "#E74C3C", "#16A085", "#D35400", "#2ECC71", "#C0392B", "#3498DB", "#F1C40F", "#1ABC9C"]
 
 class StyleManager {
-  getColor_Codex(mainSvgEle) {
-    const collarEl = mainSvgEle.querySelector('[id*="Collar"]');
-    const cuffEl = mainSvgEle.querySelector('[id*="Cuff"]');
-    const baseEl = mainSvgEle.querySelector('[id*="Base"]');
-    const topEl = mainSvgEle.querySelector('[id*="Gradient_1_"]');
-    return {
-      styles: [
-        {
-          color: collarEl.style.fill,
-          name: 'collar',
-          type: 'Collar',
-        },
-        {
-          color: cuffEl.style.fill,
-          name: 'Cuffs & Hem',
-          type: 'Cuff',
-        },
-        {
-          color: baseEl.style.fill,
-          name: 'BaseColor',
-          type: 'Base',
-        },
-        {
-          color: topEl.children[1].style.stopColor,
-          name: 'topColor',
-          type: 'Gradient_1_',
-        },
-      ],
-      color: CodexColor,
-    };
-  }
-
-  setCodexColor(mainSvgEle, type, color) {
-    const elList = mainSvgEle.querySelectorAll(`[id*=${type}]`);
-    if (type === 'Cuff') {
-      const hemList = mainSvgEle.querySelectorAll('[id*=Hem]');
-      hemList.forEach((v) => {
-        v.style.fill = color;
-      });
-    }
-    if (type === 'Base') {
-      const armsList = mainSvgEle.querySelectorAll('[id*=Arms_]');
-      armsList.forEach((v) => {
-        v.style.fill = color;
-      });
-    }
-    elList.forEach((element) => {
-      if (type === 'Gradient_1_') {
-        element.children[1].style.stopColor = color;
-        return;
+  getColorParams(objects) {
+    const filterObjects = []
+    objects.forEach(v => {
+      let item = ColorPrevList.find(v1 => v1.id === v.id)
+      if (item) {
+        item = JSON.parse(JSON.stringify(item))
+        item.color = v.fill;
+        filterObjects.push(item)
       }
-      element.style.fill = color;
-    });
+    })
+    return filterObjects
   }
 
-  getColor_Striker(mainSvgEle) {
-    const collarEl = mainSvgEle.querySelector('[id*="Collar"]');
-    const cuffEl = mainSvgEle.querySelector('[id*="Cuff"]');
-    const baseEl = mainSvgEle.querySelector('[id*="Base"]');
-    const topEl = mainSvgEle.querySelector('[id*="Front"]');
-    return {
-      styles: [
-        {
-          color: collarEl.style.fill,
-          name: 'collar',
-          type: 'Collar',
-        },
-        {
-          color: cuffEl.style.fill,
-          name: 'Cuffs & Hem',
-          type: 'Cuff',
-        },
-        {
-          color: baseEl.style.fill,
-          name: 'BaseColor',
-          type: 'Base',
-        },
-        {
-          color: topEl.style.fill,
-          name: 'Dot Pattern',
-          type: 'Dot',
-        },
-      ],
-      color: StrikerColor,
-    };
+  getImageParams(objects) {
+    const list = []
+    objects.forEach(v => {
+      if (v.type === 'Image' && v.src && v.id.slice(0, 3) === 'img') {
+        list.push({
+          id: v.id,
+          url: v.src,
+        })
+      }
+    })
+    return list;
   }
 
-  setStrikerColor(mainSvgEle, type, color) {
-    const elList = mainSvgEle.querySelectorAll(`[id*=${type}]`);
-    if (type === 'Cuff') {
-      const hemList = mainSvgEle.querySelectorAll('[id*=Hem]');
-      hemList.forEach((v) => {
-        v.style.fill = color;
-      });
-    }
-    if (type === 'Base') {
-      const armsList = mainSvgEle.querySelectorAll('[id*=Arms]');
-      armsList.forEach((v) => {
-        v.style.fill = color;
-      });
-    }
-    if (type === 'Dot') {
-      const dotsList = mainSvgEle.querySelectorAll('[id*=Tone]');
-      dotsList.forEach((v) => {
-        v.style.fill = color;
-      });
-      const dotsList1 = mainSvgEle.querySelectorAll('[id*=Spot]');
-      dotsList1.forEach((v) => {
-        v.style.fill = color;
-      });
-      return;
-    }
-    elList?.forEach((element) => {
-      element.style.fill = color;
-    });
+  getTextParams(objects) {
+    const list = []
+    objects.forEach(v => {
+      if (v.type === 'Text' && v.id.slice(0, 4) === 'text') {
+        list.push({
+          id: v.id,
+          text: v.text,
+          fill: v.fill,
+          fontSize: v.fontSize,
+          fontFamily: v.fontFamily,
+          fontWeight: v.fontWeight,
+          charSpacing: v.charSpacing
+        })
+      }
+    })
+    return list
   }
 
-  getColorByType(type, el) {
-    switch(type) {
-      case 'Codex':
-        return this.getColor_Codex(el);
-      case 'Striker':
-        return this.getColor_Striker(el);
-      default:
-        break;  
-    }
-  }
-
-  setColorByType(style, el, type, color) {
-    switch(style) {
-      case 'Codex':
-        return this.setCodexColor(el, type, color);
-      case 'Striker':
-        return this.setStrikerColor(el, type, color);
-      default:
-        break;  
-    }
+  getRenderFromJson(json) {
+    const model = json.scene.model;
+    return model.map(v => {
+      return {
+        type: v.type,
+        logos: this.getImageParams(v.texture.main.objects),
+        texts: this.getTextParams(v.texture.main.objects),
+        colors: this.getColorParams(v.texture.main.objects),
+      }
+    })
   }
 
   getFontList(svgEl) {

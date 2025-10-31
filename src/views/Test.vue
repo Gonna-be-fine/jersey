@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Fabric v6 Load JSON</title>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/fabric@6.0.0/dist/fabric.min.js"></script> -->
-   <script src="https://cdn.jsdelivr.net/npm/fabric@6.7.0/dist/index.min.js"></script>
-  <style>
-    canvas { border: 1px solid #ccc; }
-  </style>
-</head>
-<body>
-  <canvas id="c" width="512" height="512"></canvas>
-  <script>
-    const canvas = new fabric.Canvas('c');
+<template>
+  <div>
+    <div id="fabricElement" style="position:absolute;top:0;left:0;width:512px;height:512px;z-index:3;"></div>
+  </div>
+</template>
+
+<script>
+import * as fabric from 'fabric';
+import { onMounted } from 'vue';
+
+onMounted(() => {
+  const canvas = new Fabric.Canvas('fabricElement');
 
     async function loadFabricJson(url) {
       const jsonStr = await fetch(url).then(res => res.text());
@@ -33,6 +30,5 @@
 
     // 你需要把 1.json 放到本地或者部署后正确指向这个地址
     loadFabricJson('./1.json');
-  </script>
-</body>
-</html>
+})
+</script>

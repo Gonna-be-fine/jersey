@@ -37,6 +37,8 @@ const uploadLogo = (event) => {
     };
     reader.readAsDataURL(file);
   }
+  // 清空 input 的值，确保可以再次上传相同文件
+  event.target.value = '';
 };
 
 const removeLogo = (index) => {

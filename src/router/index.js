@@ -36,7 +36,13 @@ const routes = [
     name: 'ProductDetail',
     component: () => import('../views/ProductDetail.vue'),
     props: true
-  }
+  },
+  {
+    path: '/test',
+    name: 'Test',
+    component: () => import('../views/Test.vue'),
+    props: true
+  },
 ]
 
 const router = createRouter({
