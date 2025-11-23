@@ -17,6 +17,7 @@
     </button>
 
     <!-- 遮罩层 -->
+    <teleport to="body">
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
@@ -145,6 +146,7 @@
         </div>
       </div>
     </transition>
+    </teleport>
   </div>
 </template>
 

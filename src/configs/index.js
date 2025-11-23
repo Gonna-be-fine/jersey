@@ -123,8 +123,16 @@ export const DefaultTextItem = {
   underline: false,
   stroke: '',
   strokeWidth: 1,
-
+  curveValue: 50,
 };
+
+export function pickTextOptions(text) {
+  const options = JSON.parse(JSON.stringify(DefaultTextItem));
+  for (const key in options) {
+    options[key] = text[key];
+  }
+  return options;
+}
 
 export const ColorList = [
   '#FCE6F5',
@@ -170,8 +178,39 @@ export const ColorList = [
 
 export const FontTypeList = [
   {
+    type: 'American Captain',
+    url: '',
+    base64: '/fonts/css/American_Captain.css',
+    img: '',
+  },
+  {
+    type: 'Athletic',
+    url: '',
+    base64: '/fonts/css/Athletic.css',
+    img: '',
+  },
+  {
+    type: 'Komikazoom',
+    url: '',
+    base64: '/fonts/css/Komikazoom.css',
+    img: '',
+  },
+  {
+    type: 'Marguerite',
+    url: '',
+    base64: '/fonts/css/Marguerite.css',
+    img: '',
+  },
+  {
+    type: 'DELIRIUM NCV',
+    url: '',
+    base64: '/fonts/css/DELIRIUM_NCV.css',
+    img: '',
+  },
+  {
     type: 'High Trash',
     url: '/fonts/HighTrash-R92KV.otf',
+    base64: '/fonts/HighTrash-R92KV.css',
     img: '/fonts/image/HighTrash.png',
   },
   {
@@ -184,4 +223,4 @@ export const FontTypeList = [
     url: '/fonts/SummerBike-Wpdm4.otf',
     img: '/fonts/image/summber-bike.png',
   },
-]
+];

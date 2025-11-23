@@ -1,5 +1,5 @@
 <template>
-  <section class="testimonials-section">
+  <section class="testimonials-section bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
     <div class="section-heading">
       <h2 class="section-title">客户评价</h2>
     </div>
@@ -56,11 +56,9 @@ export default {
 <style scoped>
 .testimonials-section {
   padding: 4rem 2rem;
-  background: var(--bg-light);
 }
 
 .testimonial-item {
-  background: var(--bg-white);
   padding: 2rem;
   border-radius: 8px;
   margin-bottom: 2rem;
@@ -97,5 +95,19 @@ export default {
 .testimonial-content {
   font-style: italic;
   color: var(--text-light);
+}
+
+/* 暗色模式覆盖（使用 :global 选择器适配 scoped 样式） */
+:global(.dark) .testimonials-section {
+  background: #111827; /* gray-900 */
+}
+
+:global(.dark) .testimonial-item {
+  background: #1f2937; /* gray-800 */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+:global(.dark) .testimonial-content {
+  color: #9ca3af; /* gray-400 */
 }
 </style> 

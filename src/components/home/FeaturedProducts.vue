@@ -1,5 +1,5 @@
 <template>
-  <section class="featured-products bg-gray-50 py-16">
+  <section class="featured-products bg-gray-50 dark:bg-gray-900 py-16 text-gray-800 dark:text-gray-100">
     <div class="container mx-auto px-4">
       <div class="text-center mb-12">
         <h2 class="text-3xl md:text-4xl font-playfair font-bold text-gray-900 mb-4">精选产品</h2>
@@ -9,7 +9,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div v-for="product in featuredProducts" 
              :key="product.id" 
-             class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
+             class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden"
         >
           <!-- 产品图片容器 -->
           <div class="relative aspect-[3/4] overflow-hidden">
@@ -42,18 +42,18 @@
 
           <!-- 产品信息 -->
           <div class="p-4">
-            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ product.name }}</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">{{ product.name }}</h3>
             <div class="flex items-center justify-between mb-3">
-              <div class="text-sm text-gray-600">{{ product.category }}</div>
+              <div class="text-sm text-gray-600 dark:text-gray-300">{{ product.category }}</div>
               <div class="flex items-center">
                 <div class="text-primary">★★★★★</div>
-                <span class="text-sm text-gray-500 ml-1">({{ product.reviewCount }})</span>
+                <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">({{ product.reviewCount }})</span>
               </div>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span v-if="product.discount" 
-                      class="text-gray-400 line-through text-sm">
+                      class="text-gray-400 dark:text-gray-500 line-through text-sm">
                   ¥{{ product.originalPrice }}
                 </span>
                 <span class="text-primary font-bold text-xl">
@@ -86,8 +86,8 @@
              @click="closeQuickView">
         </div>
 
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+          <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- 产品图片 -->
               <div class="aspect-[3/4] overflow-hidden rounded-lg">
@@ -100,15 +100,15 @@
               
               <!-- 产品详情 -->
               <div>
-                <h3 class="text-2xl font-medium text-gray-900 mb-4">
+                <h3 class="text-2xl font-medium text-gray-900 dark:text-gray-100 mb-4">
                   {{ selectedProduct.name }}
                 </h3>
-                <p class="text-gray-600 mb-4">
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
                   {{ selectedProduct.description }}
                 </p>
                 <div class="flex items-center gap-2 mb-6">
                   <span v-if="selectedProduct.discount" 
-                        class="text-gray-400 line-through text-lg">
+                        class="text-gray-400 dark:text-gray-500 line-through text-lg">
                     ¥{{ selectedProduct.originalPrice }}
                   </span>
                   <span class="text-primary font-bold text-2xl">
@@ -118,12 +118,12 @@
                 <div class="flex items-center gap-4 mb-6">
                   <button 
                     @click="decreaseQuantity"
-                    class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
                   >-</button>
                   <span class="text-xl">{{ quantity }}</span>
                   <button 
                     @click="increaseQuantity"
-                    class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
                   >+</button>
                 </div>
                 <button 

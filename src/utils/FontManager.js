@@ -1,6 +1,42 @@
+import { FontTypeList } from '../configs/index.js';
+
 class FontManager {
   constructor() {
     this.loadedFonts = new Set(); // 跟踪已加载的字体
+    // 常见系统字体列表（可按需扩充）
+    this.systemFonts = new Set([
+      // 'American Captain',
+      // 'Athletic',
+      // 'Komikazoom',
+      // 'Marguerite',
+      // 'DELIRIUM NCV',
+
+      'Arial',
+      'Helvetica',
+      'Times New Roman',
+      'Courier New',
+      'Verdana',
+      'Georgia',
+      'Tahoma',
+      'Trebuchet MS',
+      'Comic Sans MS',
+      'Impact',
+      'Palatino Linotype',
+      'Lucida Console',
+      'Segoe UI',
+      'System-ui',
+      'sans-serif',
+      'serif',
+      'monospace',
+    ]);
+  }
+
+  async getFontBase64(fontName) {
+    const font = FontTypeList.find((v) => v.type === fontName);
+    if (font) {
+      return await fetch(font.base64).then((res) => res.text());
+    }
+    return '';
   }
 
   /**
@@ -12,9 +48,18 @@ class FontManager {
    * @param {string} [options.fontFormat='woff2'] - 自定义字体格式
    * @returns {Promise<void>}
    */
-  async loadFont(fontName, { isGoogleFont = false, fontUrl = '', fontFormat = 'woff2' } = {}) {
+  async loadFont(
+    fontName,
+    { isGoogleFont = false, fontUrl = '', fontFormat = 'woff2' } = {}
+  ) {
     if (!fontName) {
       throw new Error('Font name is required');
+    }
+    // 🔸 检查是否系统字体
+    if (this.systemFonts.has(fontName)) {
+      console.log(`Font "${fontName}" is a system font, skip loading.`);
+      this.loadedFonts.add(fontName); // 可选，标记为已存在
+      return;
     }
 
     // 如果字体已加载，直接返回
@@ -29,10 +74,21 @@ class FontManager {
         await this._loadGoogleFont(fontName);
       } else {
         // 加载自定义字体
+        const font = FontTypeList.find((v) => v.type === fontName);
         if (!fontUrl) {
-          throw new Error('Font URL is required for custom fonts');
+          if (font) {
+            fontUrl = font.url;
+          }
         }
-        await this._loadCustomFont(fontName, fontUrl, fontFormat);
+        if (!fontUrl && !(font && font.base64)) {
+          console.warn('Font URL is required for custom fonts');
+          return;
+        }
+        if (!fontUrl && font.base64) {
+          await this.loadCssFont(font.base64, font.type);
+        } else if (fontUrl) {
+          await this._loadCustomFont(fontName, fontUrl, fontFormat);
+        }
       }
 
       // 标记字体已加载
@@ -44,6 +100,24 @@ class FontManager {
     }
   }
 
+  async loadCssFont(cssUrl, fontName) {
+    const cssString = await fetch(cssUrl).then((res) => res.text());
+    const container = document.createElement('div');
+    container.innerHTML = cssString;
+
+    const style = container.querySelector('style');
+    if (style) {
+      document.head.appendChild(style);
+    }
+
+    // ⭐ 等待浏览器解析 style
+    await new Promise(requestAnimationFrame);
+
+    // ⭐ 等待指定字体加载完成
+    await document.fonts.load(`1em ${fontName}`);
+    console.log('Font loaded!');
+  }
+
   /**
    * 加载 Google Fonts
    * @param {string} fontName - 字体名称
@@ -52,12 +126,16 @@ class FontManager {
   _loadGoogleFont(fontName) {
     return new Promise((resolve, reject) => {
       const link = document.createElement('link');
-      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}&display=swap`;
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(
+        / /g,
+        '+'
+      )}&display=swap`;
       link.rel = 'stylesheet';
       link.onload = () => {
         document.fonts.load(`16px ${fontName}`).then(resolve).catch(reject);
       };
-      link.onerror = () => reject(new Error(`Failed to load Google Font: ${fontName}`));
+      link.onerror = () =>
+        reject(new Error(`Failed to load Google Font: ${fontName}`));
       document.head.appendChild(link);
     });
   }
@@ -71,11 +149,17 @@ class FontManager {
    */
   _loadCustomFont(fontName, fontUrl, fontFormat) {
     return new Promise((resolve, reject) => {
-      const font = new FontFace(fontName, `url(${fontUrl}) ${fontFormat ? `format("${fontFormat}")` : ''}`);
-      font.load().then((loadedFont) => {
-        document.fonts.add(loadedFont);
-        document.fonts.load(`16px ${fontName}`).then(resolve).catch(reject);
-      }).catch(reject);
+      const font = new FontFace(
+        fontName,
+        `url(${fontUrl}) ${fontFormat ? `format("${fontFormat}")` : ''}`
+      );
+      font
+        .load()
+        .then((loadedFont) => {
+          document.fonts.add(loadedFont);
+          document.fonts.load(`16px ${fontName}`).then(resolve).catch(reject);
+        })
+        .catch(reject);
     });
   }
 
@@ -89,7 +173,13 @@ class FontManager {
       console.warn(`Font ${fontName} is not loaded yet`);
       return;
     }
-    if (!(textObject instanceof fabric.Text || textObject instanceof fabric.IText || textObject instanceof fabric.Textbox)) {
+    if (
+      !(
+        textObject instanceof fabric.Text ||
+        textObject instanceof fabric.IText ||
+        textObject instanceof fabric.Textbox
+      )
+    ) {
       console.warn('Invalid text object');
       return;
     }
@@ -101,7 +191,7 @@ class FontManager {
    * 将字体应用到画布中的所有文本对象
    * @param {string} fontName - 字体名称
    */
-  applyFontToAllTexts (canvas, fontName) {
+  applyFontToAllTexts(canvas, fontName) {
     if (!this.loadedFonts.has(fontName)) {
       console.warn(`Font ${fontName} is not loaded yet`);
       return;

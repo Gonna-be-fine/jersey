@@ -7,10 +7,11 @@
   "description": "-",
   "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
   "isComb": true,
-  "relativeId": 0,
+  "relativeIds": [0, 1],
   "price": 65.6,
   "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
   "discountId": 0,
+  "previewSvg": ["/design_65269638/design.svg", "/design_65269638/pant.svg"],
   
   "scene": {
     "backgroundColor": "#5b5b5b",

@@ -67,9 +67,10 @@ export default {
   data() {
     return {
       translateX: 0,
-      slideWidth: 300, // 每个产品卡片的宽度
+      slideWidth: 300, // 每个产品卡片的宽度（桌面端）
       slideGap: 20,    // 卡片之间的间距
       currentIndex: 0,
+      windowWidth: typeof window !== 'undefined' ? window.innerWidth : 1024,
       latestProducts: [
         {
           id: 1,
@@ -114,10 +115,26 @@ export default {
     isAtEnd() {
       return this.currentIndex >= this.latestProducts.length - this.visibleSlides
     },
+    isMobile() {
+      return this.windowWidth <= 768
+    },
+    currentSlideWidth() {
+      // 移动端动态计算卡片宽度
+      if (this.isMobile && this.$refs.productsWrapper) {
+        const containerWidth = this.$refs.productsWrapper.clientWidth
+        // 考虑箭头按钮和间距，移动端卡片宽度约为容器宽度的 85%
+        return containerWidth * 0.85
+      }
+      return this.slideWidth
+    },
+    currentSlideGap() {
+      // 移动端使用更小的间距
+      return this.isMobile ? 10 : this.slideGap
+    },
     visibleSlides() {
       // 根据容器宽度计算可见的滑块数量
       const containerWidth = this.$refs.productsWrapper?.clientWidth || 0
-      return Math.floor(containerWidth / (this.slideWidth + this.slideGap))
+      return Math.floor(containerWidth / (this.currentSlideWidth + this.currentSlideGap)) || 1
     }
   },
   methods: {
@@ -134,7 +151,13 @@ export default {
       }
     },
     updateTranslate() {
-      this.translateX = -(this.currentIndex * (this.slideWidth + this.slideGap))
+      this.translateX = -(this.currentIndex * (this.currentSlideWidth + this.currentSlideGap))
+    },
+    handleResize() {
+      this.windowWidth = window.innerWidth
+      // 重置到开头，避免计算错误
+      this.currentIndex = 0
+      this.updateTranslate()
     },
     addToCart(product) {
       this.$emit('add-to-cart', product)
@@ -152,11 +175,13 @@ export default {
     }
   },
   mounted() {
+    // 初始化窗口宽度
+    this.handleResize()
     // 监听窗口大小变化,更新滑块位置
-    window.addEventListener('resize', this.updateTranslate)
+    window.addEventListener('resize', this.handleResize)
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.updateTranslate)
+    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
@@ -164,6 +189,9 @@ export default {
 <style scoped>
 .latest-products {
   padding: 4rem 2rem;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-heading {
@@ -171,17 +199,23 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .products-slider {
   position: relative;
   margin: 0 -1rem;
   padding: 0 1rem;
+  width: calc(100% + 2rem);
+  box-sizing: border-box;
 }
 
 .products-wrapper {
   overflow: hidden;
   margin: 0 2rem;
+  width: calc(100% - 4rem);
+  box-sizing: border-box;
 }
 
 .product-card {
@@ -193,6 +227,8 @@ export default {
   transition: all 0.3s ease;
   display: inline-block;
   vertical-align: top;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .product-image {
@@ -320,10 +356,65 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .latest-products {
+    padding: 2rem 1rem;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .heading-actions {
+    width: 100%;
+  }
+
+  .heading-actions .btn-primary {
+    width: 100%;
+  }
+
+  .products-slider {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+
   .products-wrapper {
-    margin: 0 1rem;
+    margin: 0;
+    width: 100%;
+    padding: 0 2.5rem;
+    box-sizing: border-box;
   }
   
+  .product-card {
+    width: calc(100vw - 5rem);
+    margin-right: 10px;
+  }
+
+  .slider-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .slider-arrow.prev {
+    left: 0.5rem;
+  }
+
+  .slider-arrow.next {
+    right: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .latest-products {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .products-wrapper {
+    padding: 0 2rem;
+  }
+
   .product-card {
     width: calc(100vw - 4rem);
   }

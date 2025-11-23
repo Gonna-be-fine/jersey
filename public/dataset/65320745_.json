@@ -1,0 +1,53 @@
+{
+  "id": 65320745,
+  "name": "Dragon City KB1-JY201 - 男款",
+  "genderType": "men",
+  "sportType": "basketball",
+  "clothType": "jersey",
+  "description": "-",
+  "pictures": [
+    "/design_65320745/0.jpg",
+    "/design_65320745/1.jpg"
+  ],
+  "isComb": true,
+  "relativeId": 0,
+  "price": 65.6,
+  "priceList": [
+    [
+      "1-2",
+      65.6
+    ],
+    [
+      "2-7",
+      59.4
+    ],
+    [
+      "7",
+      54.4
+    ]
+  ],
+  "discountId": 0,
+  "scene": {
+    "backgroundColor": "#5b5b5b",
+    "cameraPosition": {
+      "x": 0.04290944524343634,
+      "y": 0.38288049806211916,
+      "z": 0.7947204371116499
+    },
+    "model": [
+      {
+        "type": "jersey",
+        "url": "/models/77808584_CLI-96-NS-1-Mens-Player-Jersey-V-Neck-Collar-v4.zip.glb",
+        "position": {
+          "x": 0,
+          "y": -1.0,
+          "z": 0
+        },
+        "texture": {
+          "main": "/images/clothes/design_65320745/design.svg",
+          "edit": ""
+        }
+      }
+    ]
+  }
+}

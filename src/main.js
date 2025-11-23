@@ -9,7 +9,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-import App from './App.vue'
+import App from './components/layout/DefaultLayout.vue'
 import * as THREE from 'three';
 
 library.add(fas);

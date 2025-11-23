@@ -198,7 +198,7 @@ import { useRoute } from 'vue-router';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { World } from '../world/world';
-import TabButton from '../section/TabButton.vue';
+import TabButton from '../components/common/TabButton.vue';
 import ActionButtons from './DashBoard/ActionButtons.vue';
 
 const route = useRoute()

@@ -62,7 +62,10 @@
       </button>
 
       <!-- Directional Icons -->
-      <div class="absolute top-0 -translate-y-full cursor-pointer p-2 rounded-full bg-dark">
+      <div
+        @click="setMovement('top')"
+        class="absolute top-0 -translate-y-full cursor-pointer p-2 rounded-full bg-dark"
+      >
         <svg
           class="w-5 h-5 text-gray-400"
           fill="none"
@@ -78,7 +81,10 @@
           ></path>
         </svg>
       </div>
-      <div class="absolute bottom-0 translate-y-full cursor-pointer p-2 rounded-full bg-dark">
+      <div
+        @click="setMovement('bottom')"
+        class="absolute bottom-0 translate-y-full cursor-pointer p-2 rounded-full bg-dark"
+      >
         <svg
           class="w-5 h-5 text-gray-400"
           fill="none"
@@ -94,7 +100,10 @@
           ></path>
         </svg>
       </div>
-      <div class="absolute left-0 -translate-x-full cursor-pointer p-2 rounded-full bg-dark">
+      <div
+        @click="setMovement('left')"
+        class="absolute left-0 -translate-x-full cursor-pointer p-2 rounded-full bg-dark"
+      >
         <svg
           class="w-5 h-5 text-gray-400"
           fill="none"
@@ -110,7 +119,10 @@
           ></path>
         </svg>
       </div>
-      <div class="absolute right-0 translate-x-full cursor-pointer p-2 rounded-full bg-dark">
+      <div
+        @click="setMovement('right')"
+        class="absolute right-0 translate-x-full cursor-pointer p-2 rounded-full bg-dark"
+      >
         <svg
           class="w-5 h-5 text-gray-400"
           fill="none"
@@ -180,15 +192,32 @@
       ></div>
 
       <!-- Current Rotation Display -->
-      <div class="absolute left-1/2 -translate-x-1/2 text-white text-xs mt-8 bg-gray-700 px-2 py-0.5 rounded">
-        {{ 360 - Math.round(currentRotation) }}°
+      <div class="absolute left-1/2 -translate-x-1/2 text-white text-xs mt-8 bg-gray-700 px-2 py-0.5 rounded cursor-pointer">
+        <template v-if="!isEditing">
+          <span @click="startEdit">{{ 360 - Math.round(currentRotation) }}°</span>
+        </template>
+        <template v-else>
+          <input
+            ref="inputRef"
+            v-model.number="editValue"
+            type="number"
+            min="0"
+            max="360"
+            class="w-12 text-center bg-gray-600 text-white border-none outline-none rounded"
+            @blur="finishEdit"
+            @keyup.enter="finishEdit"
+          />°
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted, computed } from 'vue';
+import { ref, onUnmounted, computed, inject, watch, nextTick } from 'vue';
+
+const editingElement = inject('editingElement');
+const modelType = inject('modelType');
 
 // 控制组件显示/隐藏的状态
 const isVisible = ref(false);
@@ -209,12 +238,101 @@ const containerPosY = ref(window.innerHeight - 80); // Initial bottom position
 const startClientX = ref(0);
 const startClientY = ref(0);
 
+// 增加编辑逻辑
+const isEditing = ref(false);
+const editValue = ref(0);
+const inputRef = ref(null);
+
+watch(
+  () => editingElement.value,
+  (a, b) => {
+    console.log('----', a, b)
+    const cloth = window.world.getSvgEditorByType(modelType.value)
+    if (!cloth) {
+      console.warn('cloth not found')
+      return;
+    }
+    const editEl = cloth.canvas.getObjectById(a.id);
+    if (!editEl) {
+      console.warn('editEl not found')
+      return;
+    }
+    editValue.value = editEl.angle;
+    rotation.value = editEl.angle;
+  })
+
+const startEdit = () => {
+  isEditing.value = true;
+  editValue.value = 360 - Math.round(currentRotation.value);
+  nextTick(() => {
+    inputRef.value?.focus();
+    inputRef.value?.select();
+  });
+};
+
+const finishEdit = () => {
+  isEditing.value = false;
+  // 限制输入范围 0–360
+  let val = parseFloat(editValue.value);
+  if (isNaN(val)) val = 0;
+  val = Math.max(0, Math.min(360, val));
+  // 转换为内部 rotation（与显示方向相反）
+  rotation.value = 360 - val;
+};
+
+const setMovement = (type) => {
+  const cloth = window.world.getSvgEditorByType(modelType.value)
+  if (!cloth) {
+    console.warn('cloth not found')
+    return;
+  }
+  const editEl = cloth.canvas.getObjectById(editingElement.value.id);
+  if (!editEl) {
+    console.warn('editEl not found')
+    return;
+  }
+  let moveX = editEl.left;
+  let moveY = editEl.top;
+  switch (type) {
+    case 'left':
+      moveX -= 1;
+      break;
+    case 'right':
+      moveX += 1;
+      break;
+    case 'top':
+      moveY -= 1;
+      break;
+    case 'bottom':
+      moveY += 1;
+      break;
+  }
+  cloth.moveElement(editEl, moveX, moveY);
+}
+
+function setRotation (val) {
+  const cloth = window.world.getSvgEditorByType(modelType.value)
+  if (!cloth) {
+    console.warn('cloth not found')
+    return;
+  }
+  const editEl = cloth.canvas.getObjectById(editingElement.value.id);
+  if (!editEl) {
+    console.warn('editEl not found')
+    return;
+  }
+  console.log('set editEl angle', val)
+  // editEl.angle = val
+  cloth.rotateElement(editEl, val);
+
+}
 // 使用计算属性来处理旋转值的规范化
 const currentRotation = computed(() => {
   let normalizedRotation = rotation.value % 360;
   if (normalizedRotation < 0) {
     normalizedRotation += 360;
   }
+  setRotation(normalizedRotation)
   return normalizedRotation;
 });
 

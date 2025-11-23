@@ -22,7 +22,7 @@
     "@svgedit/svgcanvas": "^7.2.3",
     "@vueuse/motion": "^2.2.6",
     "axios": "^1.7.9",
-    "fabric": "^6.6.5",
+    "fabric": "6.6.4",
     "file-saver": "^2.0.5",
     "jquery": "^3.7.1",
     "jszip": "^3.10.1",

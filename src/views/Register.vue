@@ -1,10 +1,10 @@
 <template>
-  <div class="text-gray-500 min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div class="text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
         创建新账户
       </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
+      <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
         已有账户?
         <router-link to="/login" class="font-medium text-primary hover:text-secondary">
           立即登录
@@ -13,11 +13,11 @@
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+      <div class="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
         <form class="space-y-6" @submit.prevent="handleRegister">
           <!-- 用户名 -->
           <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">
+            <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               用户名
             </label>
             <div class="mt-1">
@@ -27,14 +27,14 @@
                 type="text" 
                 required 
                 v-model="form.username"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
             </div>
           </div>
 
           <!-- 邮箱 -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700">
+            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               邮箱地址
             </label>
             <div class="mt-1">
@@ -45,14 +45,14 @@
                 autocomplete="email" 
                 required 
                 v-model="form.email"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
             </div>
           </div>
 
           <!-- 密码 -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">
+            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               密码
             </label>
             <div class="mt-1">
@@ -64,15 +64,15 @@
                 v-model="form.password"
                 minlength="8"
                 maxlength="32"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
             </div>
-            <p class="mt-1 text-sm text-gray-500">密码长度需要在8-32位之间</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">密码长度需要在8-32位之间</p>
           </div>
 
           <!-- 确认密码 -->
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               确认密码
             </label>
             <div class="mt-1">
@@ -82,14 +82,14 @@
                 type="password" 
                 required 
                 v-model="form.confirmPassword"
-                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
             </div>
           </div>
 
           <!-- 邮箱验证码 -->
           <div>
-            <label for="emailCode" class="block text-sm font-medium text-gray-700">
+            <label for="emailCode" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               邮箱验证码
             </label>
             <div class="mt-1 flex gap-4">
@@ -101,21 +101,21 @@
                 maxlength="6"
                 placeholder="请输入验证码"
                 v-model="form.emailCode"
-                class="appearance-none block flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                class="appearance-none block flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               >
               <button 
                 type="button"
                 @click="sendEmailCode"
                 :disabled="countdown > 0 || !form.email"
-                class="w-32 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-300"
+                class="px-4 py-2 text-sm font-medium rounded-md transition-colors duration-300"
                 :class="countdown > 0 || !form.email ? 
-                  'bg-gray-300 text-gray-500 cursor-not-allowed' : 
+                  'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed' : 
                   'bg-primary text-white hover:bg-secondary'"
               >
                 {{ countdown > 0 ? `${countdown}秒后重试` : '发送验证码' }}
               </button>
             </div>
-            <p v-if="!form.email" class="mt-1 text-sm text-gray-500">
+            <p v-if="!form.email" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
               请先填写邮箱地址
             </p>
           </div>
@@ -128,9 +128,9 @@
               type="checkbox" 
               required
               v-model="form.agreeToTerms"
-              class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              class="h-4 w-4 text-primary focus:ring-primary border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
             >
-            <label for="terms" class="ml-2 block text-sm text-gray-900">
+            <label for="terms" class="ml-2 block text-sm text-gray-900 dark:text-gray-200">
               我同意
               <button type="button" @click="showTerms" class="text-primary hover:text-secondary">服务条款</button>
               和
@@ -159,10 +159,10 @@
         <div class="mt-6">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
+              <div class="w-full border-t border-gray-300 dark:border-gray-700"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white text-gray-500">
+              <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                 或使用以下方式注册
               </span>
             </div>
@@ -170,7 +170,7 @@
 
           <div class="mt-6 grid grid-cols-3 gap-3">
             <div>
-              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <span class="sr-only">使用微信注册</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -179,7 +179,7 @@
             </div>
 
             <div>
-              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <span class="sr-only">使用QQ注册</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -188,7 +188,7 @@
             </div>
 
             <div>
-              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <a href="#" class="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <span class="sr-only">使用微博注册</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
@@ -202,10 +202,10 @@
 
     <!-- 服务条款弹窗 -->
     <div v-if="showTermsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-bold text-gray-900">服务条款</h3>
-          <button @click="showTermsModal = false" class="text-gray-500 hover:text-gray-700">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">服务条款</h3>
+          <button @click="showTermsModal = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <font-awesome-icon :icon="['fas', 'times']" />
           </button>
         </div>
@@ -246,10 +246,10 @@
 
     <!-- 隐私政策弹窗 -->
     <div v-if="showPrivacyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-bold text-gray-900">隐私政策</h3>
-          <button @click="showPrivacyModal = false" class="text-gray-500 hover:text-gray-700">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">隐私政策</h3>
+          <button @click="showPrivacyModal = false" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
             <font-awesome-icon :icon="['fas', 'times']" />
           </button>
         </div>

@@ -56,7 +56,7 @@
 </template>
 
 <script setup>
-import TabButton from '../../section/TabButton.vue';
+import TabButton from '../common/TabButton.vue';
 import { ref } from "vue";
 
 const showContactModal = ref(false)

@@ -1,16 +1,17 @@
 {
-  "id": 65269638,
-  "name": "Windy City KB1-JY201 - 男款",
+  "id": 65269639,
+  "name": "Black City KB1-JY205 - 男款",
   "genderType": "men",
   "sportType": "basketball",
   "clothType": "suit",
   "description": "-",
-  "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
+  "pictures": ["/design_65269639/0.jpg", "/design_65269639/1.jpg","/design_65269639/2.jpg"],
   "isComb": true,
-  "relativeId": 0,
+  "relativeIds": [0, 1],
   "price": 65.6,
   "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
   "discountId": 0,
+  "previewSvg": ["/design_65269639/design.svg", "/design_65269639/pant.svg"],
   
   "scene": {
     "backgroundColor": "#5b5b5b",
@@ -29,7 +30,7 @@
           "z": 0
         },
         "texture": {
-          "main": "/images/clothes/design_65269638/design.svg",
+          "main": "/images/clothes/design_65269639/jersey.svg",
           "edit": "/texture/style/editText.svg"
         }
       },
@@ -42,7 +43,7 @@
           "z": 0
         },
         "texture": {
-          "main": "/images/clothes/design_65269638/pant.svg",
+          "main": "",
           "edit": "/texture/style/editText.svg"
         }
       }

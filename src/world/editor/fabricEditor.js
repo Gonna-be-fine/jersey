@@ -2,9 +2,14 @@ import * as THREE from 'three';
 import FabricCanvas from './FabricCanvas';
 import { loadSVGFromString, loadSVGFromURL } from 'fabric';
 import * as fabric from 'fabric';
-import { initAligningGuidelines } from 'fabric/extensions'
+import * as fabricUtils from './fabricUtils';
+import { initAligningGuidelines } from 'fabric/extensions';
 import { SvgFontManager } from './SvgFontManager';
 import { throttle } from 'lodash';
+import _fontManager from '../../utils/FontManager';
+import CustomText from './CustomText';
+import { pickTextOptions } from '../../configs';
+
 window.fabric = fabric;
 const DEFAULTSIZE = 1024;
 class FabricEditor {
@@ -12,6 +17,64 @@ class FabricEditor {
     this.world = world;
     this.options = options;
     this.initFabricCanvas();
+  }
+
+  async toSVG(
+    filename = 'canvas.svg',
+    scale = 1,
+    options = { isDownload: true }
+  ) {
+    const canvas = this.canvas;
+    const width = canvas.getWidth();
+    const height = canvas.getHeight();
+    const svgOptions = {
+      width: width * scale,
+      height: height * scale,
+      viewBox: { x: 0, y: 0, width, height },
+      // 下面两行非常关键
+      multiplier: scale, // 告诉 Fabric 内部导出时放大
+      // preserveObjectStacking: true // 可选，保持层级
+    };
+    let svgData = canvas.toSVG(svgOptions); // 生成SVG字符串
+
+    const objects = this.canvas.getObjects();
+    let texts = objects.filter(
+      (obj) => obj.type === 'text' || obj.type === 'customtext'
+    );
+    texts = texts.concat(
+      objects.filter((v) => v.type === 'customtext').map((v) => v.textElement)
+    );
+    const set = new Set(texts);
+    texts = Array.from(set);
+
+    let styleTag = '';
+    for (const text of texts) {
+      const base64 = await _fontManager.getFontBase64(text.fontFamily);
+      if (base64) {
+        styleTag += `
+          ${base64} \n
+        `;
+      }
+    }
+    styleTag = `
+      <style>
+        ${styleTag}
+      </style>
+    `;
+    svgData = svgData.replace('</svg>', `${styleTag}</svg>`);
+
+    if (!options.isDownload) {
+      return svgData;
+    }
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
   }
 
   getJson() {
@@ -69,6 +132,19 @@ class FabricEditor {
     );
   }
 
+  rotateElement(element, angle) {
+    element.rotate(angle);
+    element.setCoords(); // 添加这一行
+    this.canvas.renderAll();
+  }
+
+  moveElement(element, left, top) {
+    element.left = left;
+    element.top = top;
+    element.setCoords();
+    this.canvas.renderAll();
+  }
+
   cleanJson(json) {
     json.objects = json.objects.filter((obj) => {
       if (obj.type !== 'Image') return true;
@@ -88,19 +164,27 @@ class FabricEditor {
       width: svgWidth,
       height: svgHeight,
     });
+    for (const obj of textureSvg.objects) {
+      if (obj.type === 'Text') {
+        await _fontManager.loadFont(obj.fontFamily);
+      }
+      if (obj.type === 'CustomText') {
+        const text = obj.objects.find(v => v.type === 'Text');
+        await _fontManager.loadFont(text.fontFamily);
+      }
+    }
     await this.canvas.loadFromJSON(textureSvg);
-    // this.canvas.renderAll();
     const scaleX = svgWidth / textureSvg.canvasWidth;
     const scaleY = svgHeight / textureSvg.canvasHeight;
 
+
     this.canvas.getObjects().forEach((obj) => {
-      // console.log(obj.id);
       obj.scaleX *= scaleX;
       obj.scaleY *= scaleY;
       obj.left *= scaleX;
       obj.top *= scaleY;
       obj.setCoords();
-      obj.selectable = false;
+      // obj.selectable = false;
     });
     this.canvas.renderAll();
   }
@@ -172,7 +256,40 @@ class FabricEditor {
       charSpacing,
       text,
     } = options;
-    const len = this.canvas.getObjects('text').length + 1;
+    const len = this.canvas.getObjects('text').length + this.canvas.getObjects('customtext').length + 1;
+    const newText = new CustomText(
+      text || 'NAME',
+      Object.assign({}, options, {
+        id: 'text-' + len,
+        left: left || 360,
+        top: top || 700,
+        fontFamily: fontFamily || 'Komikazoom',
+        fontSize: fontSize || 40,
+        fill: fill || '#ffffff',
+        originX: originX || 'center',
+        originY: originY || 'center',
+        charSpacing: charSpacing || 100,
+      })
+    );
+    this.canvas.add(newText);
+    window.text = newText;
+    this.canvas.requestRenderAll();
+    return newText;
+  }
+
+  _addText(options) {
+    const {
+      left,
+      top,
+      fontFamily,
+      fontSize,
+      fill,
+      originX,
+      originY,
+      charSpacing,
+      text,
+    } = options;
+    const len = this.canvas.getObjects('text').length + this.canvas.getObjects('customtext').length + 1;
     const newText = new fabric.FabricText(
       text || 'NAME',
       Object.assign({}, options, {
@@ -192,17 +309,50 @@ class FabricEditor {
     return newText;
   }
 
+  setNewText(id, options) {
+    const text = this.canvas.getObjectById(id);
+    if (!text) {
+      console.warn('找不到对象', id);
+      return;
+    }
+    if (options.isCurved !== undefined) {
+      // 相同的情况return
+      if ((options.isCurved && text.textElement) || (!options.isCurved && !text.textElement)) {
+        return;
+      }
+      this.removeObjectById(id);
+      let textOptions = {};
+      if (options.isCurved) {
+        textOptions = pickTextOptions(text);
+        textOptions.left = text.left;
+        textOptions.top = text.top;
+        textOptions.id = id;
+        textOptions.curveValue = options.textOptions.curveValue || 50;
+        return this.addText(textOptions);
+      } else {
+        textOptions = pickTextOptions(text.textElement);
+        textOptions.left = text.left;
+        textOptions.top = text.top;
+        textOptions.id = id;
+        return this._addText(textOptions);
+      }
+
+    }
+  }
+
   updateText(id, options) {
     const text = this.canvas.getObjectById(id);
     if (!text) {
       console.warn('找不到对象', id);
       return;
     }
-    for (const key in options) {
-      if (key == 'id') continue;
-      text.set(key, options[key]);
+    
+    if (text.textElement) {
+      text.updateProperties(options);
+    } else {
+      text.set(options);
+      this.canvas.renderAll();
     }
-    this.canvas.renderAll();
   }
 
   removeObjectById(id) {

@@ -184,3 +184,14 @@ a:hover {
 .fade-in {
   animation: fadeIn 0.6s ease-out forwards;
 }
+
+/* 放在 src/style.css 的结尾或 @tailwind 之后 */
+.dark {
+  --text-color: #e5e7eb;          /* text-gray-200 */
+  --text-dark: #e5e7eb;           /* 标题等深色文字在暗色里变亮 */
+  --text-light: #9ca3af;          /* text-gray-400 */
+  --background-color: #111827;    /* bg-gray-900 */
+  --secondary-bg-color: #0f172a;  /* slate-900 作为 section 背景 */
+  --border-color: #374151;        /* border-gray-700 */
+  --primary-dark: #6e6227;        /* 你项目自定义主色的深色 */
+}

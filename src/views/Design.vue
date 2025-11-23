@@ -1,5 +1,5 @@
 <template>
-  <div class="design-container">
+  <div class="design-container bg-darker">
     <div class="overflow-y-auto text-gray-600">
       <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 h-full gap-6">
         <!-- <div ref="glCanvas" class="w-full h-full absolute top-0 left-0 z-10"></div> -->
@@ -150,7 +150,7 @@
           <!-- 编辑操作按钮 - 放在中间 -->
           <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-4">
             <!-- 撤销按钮 -->
-            <button
+            <!-- <button
               @click="cancelEdit"
               class="w-10 h-10 rounded-full bg-dark hover:bg-darker transition-colors duration-300 
                      flex items-center justify-center text-white shadow-lg group"
@@ -160,10 +160,10 @@
                 :icon="['fas', 'undo']"
                 class="group-hover:scale-110 transition-transform duration-300"
               />
-            </button>
+            </button> -->
 
             <!-- 重做按钮 -->
-            <button
+            <!-- <button
               @click="restoreCancel"
               class="w-10 h-10 rounded-full bg-dark hover:bg-darker transition-colors duration-300 
                      flex items-center justify-center text-white shadow-lg group"
@@ -171,6 +171,18 @@
             >
               <font-awesome-icon
                 :icon="['fas', 'redo']"
+                class="group-hover:scale-110 transition-transform duration-300"
+              />
+            </button> -->
+
+            <button
+              @click="saveDesign"
+              class="w-10 h-10 rounded-full bg-dark hover:bg-darker transition-colors duration-300 
+                     flex items-center justify-center text-white shadow-lg group"
+              title="下载"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'download']"
                 class="group-hover:scale-110 transition-transform duration-300"
               />
             </button>
@@ -285,6 +297,7 @@
               @removeText="removeText"
               @selectElement="selectElement"
               @updateFontFamily="updateFontFamily"
+              @curveToggled="handleCurveToggled"
             />
             <LogoTab
               v-if="currentTab === 'logo'"
@@ -330,7 +343,8 @@ import { StyleManager, fontOptions } from '../utils/StyleManager';
 import _ from 'lodash';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import TabButton from '../section/TabButton.vue';
+import { downloadJSON } from '../utils/util.js'
+import TabButton from '../components/common/TabButton.vue';
 import RotateMovePanel from '../components/DashBoard/RotateMovePanel.vue';
 import { ColorList, DefaultTextItem } from '../configs';
 
@@ -375,7 +389,7 @@ const players = ref([{
 // 当前编辑状态
 const editingElement = ref({});
 provide('editingElement', editingElement);
-
+provide('modelType', modelType);
 
 let mainSvgEle = null;
 const styleManager = new StyleManager();
@@ -420,7 +434,7 @@ const previewPlayer = (index) => {
 // 文本相关方法
 const addText = () => {
   const newTextOptions = JSON.parse(JSON.stringify(DefaultTextItem));
-  const newText = world.getSvgEditorByType(modelType.value).addText(newTextOptions);
+  const newText = world.getSvgEditorByType(modelType.value)._addText(newTextOptions);
   if (!newText) {
     alert('系统出错！！！');
     return;
@@ -441,6 +455,9 @@ const monitorTextChange = _.debounce((newTexts, oldTexts) => {
     const oldText = oldTexts[index];
     if(oldText.isExpanded !== newText.isExpanded) return;
     if(oldText.fontFamily !== newText.fontFamily) return;
+    if(oldText.isCurved !== newText.isCurved) {
+      return;
+    }
     if(_.isEqual(newText, oldText)) return;
     world.getSvgEditorByType(modelType.value).updateText(newText.id, newText);
   });
@@ -448,6 +465,10 @@ const monitorTextChange = _.debounce((newTexts, oldTexts) => {
 const updateFontFamily = (index, fontType) => {
   const newText = currentRenderData.value.texts[index];
   world.getSvgEditorByType(modelType.value).updateText(newText.id, { fontFamily: fontType });
+}
+const handleCurveToggled = (options) => {
+  console.log(options);
+  world.getSvgEditorByType(modelType.value).setNewText(options.id, options);
 }
 watch(
   () => _.cloneDeep(currentRenderData.value.texts),
@@ -532,26 +553,24 @@ const viewSelectionToGui = (selected) => {
   };
 };
 
-// 保存设计
-const downloadZIP = () => {
-  const mainSvgCtn = document.querySelector('#mainSvgCtn');
-  if (!mainSvgCtn) return;
+const saveDesign = async () => {
+  if (!window.world) return;
+  const data = currentProduct.value;
+
   const zip = new JSZip();
-
-  const svgContent1 = window.world.svgEditor.svgCanvas.getSvgString();
-  zip.file("editSvg.svg", svgContent1);
-
-  const svgContent2 = mainSvgCtn.outerHTML;
-  zip.file("mainSvg.svg", svgContent2);
-
-  zip.generateAsync({ type: "blob" }).then(function (content) {
-    saveAs(content, "svgs.zip");
+  data.scene.model.forEach(v => {
+    v.texture.main = world.getSvgEditorByType(v.type).getJson();
   });
-};
-
-const saveDesign = () => {
-  if (!window.world.svgEditor.svgCanvas) return;
-  downloadZIP();
+  // downloadJSON(data);
+  zip.file(data.id + '.json', JSON.stringify(data));
+  for(const key in world.resource) {
+    const design = world.resource[key];
+    const fabricJson = await design.fabricEditor.toSVG(`${data.id}.svg`, 1, { isDownload: false });
+    zip.file(`${data.id}_${key}.svg`, fabricJson);
+  }
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    saveAs(content, `${data.id}.zip`);
+  });
 };
 
 // 生命周期钩子
@@ -573,6 +592,9 @@ onMounted(async () => {
     for (let key in world.resource) {
       const editor = world.getSvgEditorByType(key);
       editor.canvas.on('selection:created', (e) => {
+        viewSelectionToGui(e.selected[0]);
+      });
+      editor.canvas.on('selection:updated', (e) => {
         viewSelectionToGui(e.selected[0]);
       });
     }

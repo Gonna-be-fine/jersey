@@ -18,7 +18,7 @@
             </span>
           </h2>
           <p class="hero-description">利用AI与创新技术，定制属于你的衣服。多种款式，任你设计，尽享个性化体验。</p>
-          <div class="button-wrapper">
+          <div class="button-wrapper" @click="$router.push('/products')">
             <button class="view-more-btn">
               <span>查看更多</span>
               <font-awesome-icon :icon="['fas', 'arrow-right']" class="btn-icon" />
@@ -41,7 +41,7 @@
     <testimonials-section />
 
     <!-- Latest Products -->
-    <latest-products />
+    <!-- <latest-products /> -->
   </div>
 </template>
 
@@ -63,13 +63,14 @@ export default {
 </script>
 
 <style scoped>
+
 .hero {
   background-color: var(--secondary-bg-color, #f1f1f1);
   padding: 0;
   min-height: 100vh;
   display: flex;
   align-items: center;
-  margin-top: -5rem;
+  /* margin-top: -5rem; */
 }
 
 .hero-container {

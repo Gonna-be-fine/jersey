@@ -1,5 +1,5 @@
 <template>
-  <section class="pt-16 bg-gray-50">
+  <section class="pt-16 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <section-title title="设计类型">
         <template #action>
@@ -17,7 +17,7 @@
       <div class="mt-12 grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
         <div v-for="product in products" 
              :key="product.id" 
-             class="group relative bg-white rounded-lg shadow-sm hover:-translate-y-1 transition-transform duration-300">
+             class="group relative bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:-translate-y-1 transition-transform duration-300">
           <div class="relative w-full h-80 rounded-t-lg overflow-hidden">
             <img :src="product.image" 
                  :alt="product.name"
@@ -29,7 +29,7 @@
           </div>
           
           <div class="p-6">
-            <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ product.name }}</h3>
             <!-- <div class="mt-3 flex items-center"></div> -->
             <button 
               @click="openDesignPanel(product)"

@@ -6,13 +6,28 @@
     "sportType": "basketball",
     "clothType": "jersey",
     "description": "-",
-    "pictures": ["/b1/jersy_0.jpg", "/b1/jersy_1.jpg"],
+    "pictures": [
+      "/b1/jersy_0.jpg",
+      "/b1/jersy_1.jpg"
+    ],
     "isComb": false,
     "relativeId": 0,
     "price": 65.6,
-    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "priceList": [
+      [
+        "1-2",
+        65.6
+      ],
+      [
+        "2-7",
+        59.4
+      ],
+      [
+        "7",
+        54.4
+      ]
+    ],
     "discountId": 0,
-    
     "scene": {
       "backgroundColor": "#5b5b5b",
       "cameraPosition": {
@@ -35,54 +50,34 @@
     }
   },
   {
-    "id": 2,
-    "name": "Ball Stars 可翻转裤子 - 男款",
+    "id": 65320745,
+    "name": "Dragon City KB1-JY201 - 男款",
     "genderType": "men",
     "sportType": "basketball",
-    "clothType": "Shorts",
+    "clothType": "Tees",
     "description": "-",
-    "pictures": ["/b1/pant_0.jpg", "/b1/pant_1.jpg"],
-    "isComb": false,
-    "relativeId": 0,
-    "price": 65.6,
-    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
-    "discountId": 0,
-    
-    "scene": {
-      "backgroundColor": "#5b5b5b",
-      "cameraPosition": {
-        "x": -0.009666748088079795,
-        "y": 0.1459023549040876,
-        "z": 0.6137803763666974
-      },
-      "model": {
-        "url": "/data/cloth.glb",
-        "position": {
-          "x": 0,
-          "y": -1.2,
-          "z": 0
-        }
-      },
-      "texture": {
-        "main": "/texture/style/style1.svg",
-        "edit": "/texture/style/editText.svg"
-      }
-    }
-  },
-  {
-    "id": 3,
-    "name": "Ball Stars 可翻转套装 - 男款",
-    "genderType": "men",
-    "sportType": "basketball",
-    "clothType": "jersey",
-    "description": "-",
-    "pictures": ["/b1/0.jpg", "/b1/1.jpg", "/b1/2.jpg", "/b1/3.jpg"],
+    "pictures": [
+      "/design_65320745/0.jpg",
+      "/design_65320745/1.jpg"
+    ],
     "isComb": true,
-    "relativeId": 3,
+    "relativeId": 0,
     "price": 65.6,
-    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "priceList": [
+      [
+        "1-2",
+        65.6
+      ],
+      [
+        "2-7",
+        59.4
+      ],
+      [
+        "7",
+        54.4
+      ]
+    ],
     "discountId": 0,
-    
     "scene": {
       "backgroundColor": "#5b5b5b",
       "cameraPosition": {
@@ -102,6 +97,80 @@
         "main": "/texture/style/style1.svg",
         "edit": "/texture/style/editText.svg"
       }
+    }
+  },
+  {
+    "id": 65269639,
+    "name": "Black City KB1-JY205 - 男款",
+    "genderType": "men",
+    "sportType": "basketball",
+    "clothType": "suit",
+    "description": "-",
+    "pictures": [
+      "/design_65269639/0.jpg",
+      "/design_65269639/1.jpg",
+      "/design_65269639/2.jpg"
+    ],
+    "isComb": true,
+    "relativeIds": [
+      0,
+      1
+    ],
+    "price": 65.6,
+    "priceList": [
+      [
+        "1-2",
+        65.6
+      ],
+      [
+        "2-7",
+        59.4
+      ],
+      [
+        "7",
+        54.4
+      ]
+    ],
+    "discountId": 0,
+    "previewSvg": [
+      "/design_65269639/design.svg",
+      "/design_65269639/pant.svg"
+    ],
+    "scene": {
+      "backgroundColor": "#5b5b5b",
+      "cameraPosition": {
+        "x": -0.18726758022249138,
+        "y": 0.24978520350249844,
+        "z": 1.2972883204329633
+      },
+      "model": [
+        {
+          "type": "jersey",
+          "url": "/models/77808584_CLI-96-NS-1-Mens-Player-Jersey-V-Neck-Collar-v4.zip.glb",
+          "position": {
+            "x": 0,
+            "y": -1.0,
+            "z": 0
+          },
+          "texture": {
+            "main": "/images/clothes/design_65269639/jersey.svg",
+            "edit": "/texture/style/editText.svg"
+          }
+        },
+        {
+          "type": "pant",
+          "url": "/models/295661978636127_CLI-956-R1-Mens-Basketball-Shorts-Reverse-1.zip.glb",
+          "position": {
+            "x": 0,
+            "y": -1.2,
+            "z": 0
+          },
+          "texture": {
+            "main": "",
+            "edit": "/texture/style/editText.svg"
+          }
+        }
+      ]
     }
   },
   {
@@ -111,13 +180,32 @@
     "sportType": "basketball",
     "clothType": "jersey",
     "description": "-",
-    "pictures": ["/design_65269638/jersys_front.jpg", "/design_65269638/jersys_back.jpg","/design_65269638/jersys_side.jpg"],
+    "pictures": [
+      "/design_65269638/jersys_front.jpg",
+      "/design_65269638/jersys_back.jpg",
+      "/design_65269638/jersys_side.jpg"
+    ],
     "isComb": true,
-    "relativeId": 0,
+    "relativeIds": [
+      0,
+      1
+    ],
     "price": 65.6,
-    "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+    "priceList": [
+      [
+        "1-2",
+        65.6
+      ],
+      [
+        "2-7",
+        59.4
+      ],
+      [
+        "7",
+        54.4
+      ]
+    ],
     "discountId": 0,
-    
     "scene": {
       "backgroundColor": "#5b5b5b",
       "cameraPosition": {

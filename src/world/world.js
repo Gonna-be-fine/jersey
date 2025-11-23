@@ -7,7 +7,7 @@ import EventDispatch from '../utils/EventDispatch';
 import { Lights, Lights1 } from './config';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { KTX2Loader } from 'three/examples/jsm/Addons.js';
-import FabricEditor from './editor/fabricEditor';
+import FabricEditor from './editor/FabricEditor.js';
 
 export class World extends EventDispatch {
   constructor(dom, options) {
@@ -262,6 +262,7 @@ export class World extends EventDispatch {
         }
         console.log(gltf.scene);
         this.scene.add(gltf.scene);
+        this.updateCameraAndControls(this.scene, 'front');
         clothGltf.name = model.type;
         clothGltf.children.forEach((v) => {
           if (v.isMesh) {

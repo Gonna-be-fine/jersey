@@ -57,11 +57,12 @@
               :key="font.type"
               @click="selectFont(font)"
               href="#"
-              class="bg-white block px-4 py-2 hover:bg-blue-200 cursor-pointer"
-              :class="{ 'bg-blue-200': selectedFont && selectedFont.type === font.type }"
+              class=" block px-4 py-2 hover:bg-blue-200 cursor-pointer"
+              :class="selectedFont && selectedFont.type === font.type ? 'bg-blue-200' : 'bg-white'"
               role="menuitem"
             >
-              <div :style="{ background: `url(${font.img}) no-repeat center center / contain`}" class="h-6 bg-white" ></div>
+              <div v-if="font.img" :style="{ background: `url(${font.img}) no-repeat center center / contain`}" class="h-6 bg-white" ></div>
+              <div v-else class="h-6 bg-white" >{{font.type}}</div>
             </a>
           </div>
         </div>

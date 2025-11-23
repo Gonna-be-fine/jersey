@@ -1,4 +1,4 @@
-import { ColorPrevList } from "../configs";
+import { ColorPrevList, DefaultTextItem } from "../configs";
 
 const CodexColor = [
   '#FF5733',
@@ -56,19 +56,33 @@ class StyleManager {
     return list;
   }
 
+  pickTextOptions(text) {
+    const options = JSON.parse(JSON.stringify(DefaultTextItem));
+    options.id = text.id;
+    for (const key in options) {
+      options[key] = text[key];
+    }
+    return options;
+  }
+
   getTextParams(objects) {
     const list = []
     objects.forEach(v => {
+      if (v.type === 'CustomText' && v.id.slice(0, 4) === 'text') {
+        const text = v.objects.find(v => v.type === 'Text');
+        list.push({ 
+          ...this.pickTextOptions(text),
+          curveValue: v.curveValue,
+          isCurved: true,
+          id: v.id
+        });
+        return;
+      }
       if (v.type === 'Text' && v.id.slice(0, 4) === 'text') {
         list.push({
-          id: v.id,
-          text: v.text,
-          fill: v.fill,
-          fontSize: v.fontSize,
-          fontFamily: v.fontFamily,
-          fontWeight: v.fontWeight,
-          charSpacing: v.charSpacing
-        })
+          ...this.pickTextOptions(v),
+          isCurved: false
+        });
       }
     })
     return list

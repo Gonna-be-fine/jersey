@@ -1,38 +1,87 @@
+<!-- <script src="https://cdn.jsdelivr.net/npm/fabric@6.4.3/dist/index.js"></script>   -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Fabric v6 Load JSON</title>
-  <!-- <script src="https://cdn.jsdelivr.net/npm/fabric@6.0.0/dist/fabric.min.js"></script> -->
-   <script src="https://cdn.jsdelivr.net/npm/fabric@6.7.0/dist/index.min.js"></script>
-  <style>
-    canvas { border: 1px solid #ccc; }
-  </style>
+<script src="https://cdn.jsdelivr.net/npm/fabric@6.4.3/dist/index.js"></script>  
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/6.0.0/fabric.min.js"></script> -->
 </head>
 <body>
-  <canvas id="c" width="512" height="512"></canvas>
-  <script>
-    const canvas = new fabric.Canvas('c');
+    <canvas id="canvas" width="800" height="600" style="border: 1px solid #ccc;"></canvas>
+    <script>
+        var canvas = new fabric.Canvas('canvas');
 
-    async function loadFabricJson(url) {
-      const jsonStr = await fetch(url).then(res => res.text());
-      let json = JSON.parse(jsonStr);
+        // 创建三次贝塞尔曲线路径（初始控制点：cp1(150,50), cp2(250,150)）
+        var pathData = 'M 100 200 C 150 50, 250 150, 400 200';
+        var curvePath = new fabric.Path(pathData, {
+            stroke: 'blue',
+            strokeWidth: 2,
+            fill: '',
+            selectable: false,  // 路径本身不可选，只选控制点
+            left: 0,
+            top: 0
+        });
+        canvas.add(curvePath);
 
-      // // 清理无效 Image 对象
-      // json.objects = json.objects.filter(obj => {
-      //   if (obj.type !== 'image') return true;
-      //   return obj.src && obj.src.length > 0 && obj.width > 0 && obj.height > 0;
-      // });
+        // 创建控制点（可拖拽的圆圈）
+        var controlPoints = [
+            { name: 'start', x: 100, y: 200, radius: 5, fill: 'green' },  // 起点
+            { name: 'cp1', x: 150, y: 50, radius: 4, fill: 'red' },       // 控制点1
+            { name: 'cp2', x: 250, y: 150, radius: 4, fill: 'red' },      // 控制点2
+            { name: 'end', x: 400, y: 200, radius: 5, fill: 'green' }     // 终点
+        ];
 
-      // 加载
-      await canvas.loadFromJSON(json);
-      canvas.renderAll();
+        var points = [];
+        controlPoints.forEach(function(pt) {
+            var circle = new fabric.Circle({
+                left: pt.x,
+                top: pt.y,
+                radius: pt.radius,
+                fill: pt.fill,
+                stroke: 'black',
+                selectable: true,
+                hasControls: false,
+                hasBorders: false,
+                originX: 'center',
+                originY: 'center'
+            });
+            circle.on('moving', updateCurve);  // 监听移动，更新曲线
+            canvas.add(circle);
+            points.push(circle);
+        });
 
-      console.log("Loaded objects:", canvas.getObjects());
-    }
+        // 创建文字，沿着路径弯曲
+        var text = new fabric.IText('你的文字在这里，可以编辑并沿着曲线弯曲！', {
+            left: 50,
+            top: 150,
+            fontSize: 20,
+            fill: 'black',
+            path: curvePath,           // 绑定路径
+            pathSide: 'left',          // 文字在上方（left/right/empty）
+            pathStartOffset: 0,        // 从路径起点开始（0-1）
+            textAlign: 'left'          // 文字对齐
+        });
+        canvas.add(text);
 
-    // 你需要把 1.json 放到本地或者部署后正确指向这个地址
-    loadFabricJson('./1.json');
-  </script>
+        // 更新曲线的函数
+        function updateCurve(e) {
+            var movedPoint = controlPoints[points.indexOf(e.target)];
+            movedPoint.x = e.transform ? e.transform.translateX + e.target.left : e.target.left;
+            movedPoint.y = e.transform ? e.transform.translateY + e.target.top : e.target.top;
+
+            // 重新生成路径字符串
+            pathData = 'M ' + controlPoints[0].x + ' ' + controlPoints[0].y +
+                       ' C ' + controlPoints[1].x + ' ' + controlPoints[1].y + ', ' +
+                       controlPoints[2].x + ' ' + controlPoints[2].y + ', ' +
+                       controlPoints[3].x + ' ' + controlPoints[3].y;
+            curvePath.set({ path: pathData });
+            text.set({ path: curvePath });  // 更新文字路径
+
+            canvas.renderAll();
+        }
+
+        // 渲染画布
+        canvas.renderAll();
+    </script>
 </body>
 </html>
