@@ -54,4 +54,3 @@ var getIntersects = function (point, objects) {
   raycaster.setFromCamera(mouse, camera);
   return raycaster.intersectObjects(objects);
 };
-

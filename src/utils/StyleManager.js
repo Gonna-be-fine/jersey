@@ -72,7 +72,7 @@ class StyleManager {
         const text = v.objects.find(v => v.type === 'Text');
         list.push({ 
           ...this.pickTextOptions(text),
-          curveValue: v.curveValue,
+          curveValue: v.curveValue || 50,
           isCurved: true,
           id: v.id
         });
@@ -81,7 +81,9 @@ class StyleManager {
       if (v.type === 'Text' && v.id.slice(0, 4) === 'text') {
         list.push({
           ...this.pickTextOptions(v),
-          isCurved: false
+          isCurved: false,
+          curveValue: v.curveValue || 50,
+          id: v.id          
         });
       }
     })

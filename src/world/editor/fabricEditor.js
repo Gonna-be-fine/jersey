@@ -2,13 +2,13 @@ import * as THREE from 'three';
 import FabricCanvas from './FabricCanvas';
 import { loadSVGFromString, loadSVGFromURL } from 'fabric';
 import * as fabric from 'fabric';
-import * as fabricUtils from './fabricUtils';
 import { initAligningGuidelines } from 'fabric/extensions';
 import { SvgFontManager } from './SvgFontManager';
 import { throttle } from 'lodash';
 import _fontManager from '../../utils/FontManager';
 import CustomText from './CustomText';
 import { pickTextOptions } from '../../configs';
+import { isSVGString } from '../utils/utils';
 
 window.fabric = fabric;
 const DEFAULTSIZE = 1024;
@@ -169,14 +169,13 @@ class FabricEditor {
         await _fontManager.loadFont(obj.fontFamily);
       }
       if (obj.type === 'CustomText') {
-        const text = obj.objects.find(v => v.type === 'Text');
+        const text = obj.objects.find((v) => v.type === 'Text');
         await _fontManager.loadFont(text.fontFamily);
       }
     }
     await this.canvas.loadFromJSON(textureSvg);
     const scaleX = svgWidth / textureSvg.canvasWidth;
     const scaleY = svgHeight / textureSvg.canvasHeight;
-
 
     this.canvas.getObjects().forEach((obj) => {
       obj.scaleX *= scaleX;
@@ -256,11 +255,14 @@ class FabricEditor {
       charSpacing,
       text,
     } = options;
-    const len = this.canvas.getObjects('text').length + this.canvas.getObjects('customtext').length + 1;
+    const len =
+      this.canvas.getObjects('text').length +
+      this.canvas.getObjects('customtext').length +
+      1;
     const newText = new CustomText(
       text || 'NAME',
       Object.assign({}, options, {
-        id: 'text-' + len,
+        id: options.id || 'text-' + len,
         left: left || 360,
         top: top || 700,
         fontFamily: fontFamily || 'Komikazoom',
@@ -289,7 +291,10 @@ class FabricEditor {
       charSpacing,
       text,
     } = options;
-    const len = this.canvas.getObjects('text').length + this.canvas.getObjects('customtext').length + 1;
+    const len =
+      this.canvas.getObjects('text').length +
+      this.canvas.getObjects('customtext').length +
+      1;
     const newText = new fabric.FabricText(
       text || 'NAME',
       Object.assign({}, options, {
@@ -317,7 +322,10 @@ class FabricEditor {
     }
     if (options.isCurved !== undefined) {
       // 相同的情况return
-      if ((options.isCurved && text.textElement) || (!options.isCurved && !text.textElement)) {
+      if (
+        (options.isCurved && text.textElement) ||
+        (!options.isCurved && !text.textElement)
+      ) {
         return;
       }
       this.removeObjectById(id);
@@ -336,7 +344,6 @@ class FabricEditor {
         textOptions.id = id;
         return this._addText(textOptions);
       }
-
     }
   }
 
@@ -346,7 +353,7 @@ class FabricEditor {
       console.warn('找不到对象', id);
       return;
     }
-    
+
     if (text.textElement) {
       text.updateProperties(options);
     } else {
@@ -374,9 +381,23 @@ class FabricEditor {
   async addLogo(base64, options = {}) {
     const canvas = this.canvas;
     const id = this.canvas.getObjects('image').length + 1;
-    const img = await fabric.FabricImage.fromURL(base64, {
-      crossOrigin: 'anonymous',
-    });
+
+    let img = null;
+    // 1. Check if the base64 string is an SVG data URI
+    if (isSVGString(base64)) {
+      // Use fabric.loadSVGFromString for vector data
+      const data = await fabric.loadSVGFromString(base64);
+
+      // Fabric 6 推荐创建 SVG 对象（新方式）
+      const svg = fabric.util.groupSVGElements(data.objects, data.options);
+
+      img = svg;
+    } else {
+      // Use fabric.FabricImage for image data
+      img = await fabric.FabricImage.fromURL(base64, {
+        crossOrigin: 'anonymous',
+      });
+    }
     img.id = `img-${id}`;
 
     // 自动缩放适配画布
