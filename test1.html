@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>SVG Drawer Preview</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <style>
+    @keyframes slide-in {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+    .animate-slide-in {
+      animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+<div id="app" class="p-10">
+  <button
+    @click="isOpen = true"
+    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+  >
+    打开 SVG Drawer
+  </button>
+
+  <!-- Drawer Component -->
+  <svg-drawer
+    :is-open="isOpen"
+    :on-close="() => isOpen = false"
+    :on-select="onSelect"
+  ></svg-drawer>
+
+  <div class="mt-10">
+    <h2 class="text-xl font-bold">你点击的 SVG：</h2>
+    <div v-html="selectedSvg" class="mt-4 w-12 h-12"></div>
+  </div>
+</div>
+
+<!-- COMPONENT + MOCK DATA -->
+<script>
+
+// -------------------------
+// 模拟数据
+// -------------------------
+function generateSvgLibrary() {
+  const list = []
+  const cats = ["Animals", "Shapes", "Arrows", "UI", "Logos"]
+
+  for (let i = 0; i < 100; i++) {
+    const cat = cats[i % cats.length]
+    list.push({
+      id: i,
+      name: `Icon ${i}`,
+      category: cat,
+      content: `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                  <circle cx='12' cy='12' r='8' stroke-width='2'></circle>
+                </svg>`
+    })
+  }
+  return list
+}
+
+// -------------------------
+// SVG Drawer Component
+// -------------------------
+const SvgDrawer = {
+  template: `
+    <div v-if="isOpen" class="fixed inset-0 z-50 flex justify-end">
+      
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        @click="onClose"
+      ></div>
+
+      <aside class="relative w-full md:w-[800px] h-full bg-white shadow-2xl flex flex-col animate-slide-in">
+
+        <!-- Header -->
+        <div class="flex flex-col border-b border-gray-100 bg-white z-10">
+          <div class="flex items-center justify-between p-4 pb-2">
+            <div>
+              <h2 class="text-xl font-bold text-gray-900">Library</h2>
+              <p class="text-sm text-gray-500 mt-0.5">
+                {{ isInitialLoading ? "Loading..." : filteredItems.length + " assets found" }}
+              </p>
+            </div>
+
+            <button
+              @click="onClose"
+              class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="px-4 pb-4">
+            <div class="relative">
+              <svg
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+
+              <input
+                type="text"
+                placeholder="Search..."
+                v-model="searchQuery"
+                :disabled="isInitialLoading"
+                class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 flex overflow-hidden">
+
+          <!-- Categories -->
+          <nav class="w-full md:w-56 flex-shrink-0 bg-gray-50/80 border-r border-gray-100 flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto h-[60px] md:h-full">
+            <div class="flex md:flex-col p-2 md:p-3 gap-1 md:gap-1.5 min-w-max md:min-w-0 w-full">
+
+              <div class="hidden md:block px-3 py-2 text-xs font-semibold text-gray-400 uppercase">Categories</div>
+
+              <button
+                v-for="cat in categories"
+                :key="cat"
+                @click="selectedCategory = cat"
+                class="group px-3 py-2 rounded-lg text-sm transition-all"
+                :class="selectedCategory === cat ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-white'"
+              >
+                {{ cat }}
+              </button>
+
+            </div>
+          </nav>
+
+          <!-- Grid -->
+          <div ref="scrollContainer" class="flex-1 overflow-y-auto bg-white p-4 md:p-6">
+
+            <div
+              v-if="isInitialLoading"
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3"
+            >
+              <div v-for="i in 24" :key="i" class="aspect-square bg-gray-100 rounded-xl animate-pulse"></div>
+            </div>
+
+            <div
+              v-else-if="displayedItems.length"
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3"
+            >
+              <div
+                v-for="item in displayedItems"
+                :key="item.id"
+                @click="onSelect(item)"
+                class="group aspect-square flex flex-col items-center justify-center p-3 bg-white border border-gray-100 rounded-xl cursor-pointer hover:border-blue-500 hover:shadow-lg"
+              >
+                <div class="w-10 h-10 mb-2 text-gray-600" v-html="item.content"></div>
+                <span class="text-[10px] text-gray-400 font-medium truncate">{{ item.name }}</span>
+              </div>
+            </div>
+
+            <div v-else class="text-center text-gray-500 py-20">No results</div>
+
+            <div
+              v-if="!isInitialLoading && displayedItems.length < filteredItems.length"
+              ref="loadingTrigger"
+              class="py-8 flex justify-center"
+            >
+              <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-200 border-b-blue-600"></div>
+            </div>
+
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  `,
+
+  props: ["isOpen", "onClose", "onSelect"],
+
+  setup(props) {
+    const { ref, computed, onMounted, watch } = Vue
+
+    const PAGE_SIZE = 40
+    const items = ref([])
+    const isInitialLoading = ref(true)
+    const selectedCategory = ref("All")
+    const searchQuery = ref("")
+    const visibleCount = ref(PAGE_SIZE)
+
+    const scrollContainer = ref(null)
+    const loadingTrigger = ref(null)
+
+    // data load
+    onMounted(async () => {
+      await new Promise(r => setTimeout(r, 500))
+      items.value = generateSvgLibrary()
+      isInitialLoading.value = false
+    })
+
+    const categories = computed(() => {
+      const set = new Set(items.value.map(i => i.category))
+      return ["All", ...Array.from(set)]
+    })
+
+    const filteredItems = computed(() => {
+      let arr = items.value
+      if (selectedCategory.value !== "All")
+        arr = arr.filter(i => i.category === selectedCategory.value)
+      if (searchQuery.value.trim())
+        arr = arr.filter(i => i.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
+      return arr
+    })
+
+    const displayedItems = computed(() =>
+      filteredItems.value.slice(0, visibleCount.value)
+    )
+
+    // reset pagination
+    watch([selectedCategory, searchQuery], () => {
+      visibleCount.value = PAGE_SIZE
+      if (scrollContainer.value) scrollContainer.value.scrollTop = 0
+    })
+
+    // infinite scroll
+    let observer = null
+    watch(displayedItems, () => {
+      if (!loadingTrigger.value) return
+      if (observer) observer.disconnect()
+
+      observer = new IntersectionObserver(
+        entries => {
+          if (entries[0].isIntersecting) {
+            visibleCount.value = Math.min(
+              visibleCount.value + PAGE_SIZE,
+              filteredItems.value.length
+            )
+          }
+        },
+        { root: scrollContainer.value, threshold: 0.1, rootMargin: "200px" }
+      )
+      observer.observe(loadingTrigger.value)
+    })
+
+    return {
+      items,
+      isInitialLoading,
+      categories,
+      selectedCategory,
+      searchQuery,
+      filteredItems,
+      displayedItems,
+      scrollContainer,
+      loadingTrigger,
+    }
+  }
+}
+
+// -------------------------
+// APP
+// -------------------------
+const app = Vue.createApp({
+  components: { SvgDrawer },
+
+  setup() {
+    const isOpen = Vue.ref(false)
+    const selectedSvg = Vue.ref("")
+
+    const onSelect = item => {
+      selectedSvg.value = item.content
+      isOpen.value = false
+    }
+
+    return { isOpen, selectedSvg, onSelect }
+  }
+})
+
+app.mount("#app")
+</script>
+
+</body>
+</html>

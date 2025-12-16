@@ -9,9 +9,12 @@ import _fontManager from '../../utils/FontManager';
 import CustomText from './CustomText';
 import { pickTextOptions } from '../../configs';
 import { isSVGString } from '../utils/utils';
+import PerformanceDetector from './PerformanceDetector';
+import { FabricMagnifier } from './FabricMagnifer';
 
 window.fabric = fabric;
-const DEFAULTSIZE = 1024;
+const DEFAULTSIZE = 2048;
+// const DEFAULTSIZE = PerformanceDetector.getOptimalSize();
 class FabricEditor {
   constructor(world, options) {
     this.world = world;
@@ -130,6 +133,8 @@ class FabricEditor {
         this.texture.needsUpdate = true;
       }, 200)
     );
+
+    this.fabricMagnifer = new FabricMagnifier(this.canvas, {});
   }
 
   rotateElement(element, angle) {
@@ -158,12 +163,13 @@ class FabricEditor {
     const { textureSvg } = this.options;
     // const json = this.cleanJson(url);
     // console.log('-------', json);
-    const svgWidth = DEFAULTSIZE || 1024;
-    const svgHeight = DEFAULTSIZE || 1024;
+    const svgWidth = DEFAULTSIZE || 2048;
+    const svgHeight = DEFAULTSIZE || 2048;
     this.canvas.setDimensions({
       width: svgWidth,
       height: svgHeight,
     });
+    textureSvg.objects = textureSvg.objects.filter((obj) => !(obj.type === 'Text' && (obj.text.includes('MACHINE') || obj.text.includes('MADE IN AUSTRALIA') || obj.text.includes('100% POLYESTER'))));
     for (const obj of textureSvg.objects) {
       if (obj.type === 'Text') {
         await _fontManager.loadFont(obj.fontFamily);
@@ -199,8 +205,8 @@ class FabricEditor {
 
     loadSVGFromString(cleanedSvg).then((data) => {
       const { objects, options } = data;
-      const svgWidth = options.width || 1024;
-      const svgHeight = options.height || 1024;
+      const svgWidth = options.width || 2048;
+      const svgHeight = options.height || 2048;
       const scaleSize = DEFAULTSIZE / Math.max(svgWidth, svgHeight);
       this.canvas.setDimensions({
         width: scaleSize * svgWidth,
@@ -223,9 +229,6 @@ class FabricEditor {
         canvas.add(obj);
       });
 
-      // objects.forEach(obj => {
-      //   canvas.add(obj);
-      // });
       canvas.requestRenderAll();
       requestAnimationFrame(() => {
         this.texture.needsUpdate = true;
@@ -255,10 +258,7 @@ class FabricEditor {
       charSpacing,
       text,
     } = options;
-    const len =
-      this.canvas.getObjects('text').length +
-      this.canvas.getObjects('customtext').length +
-      1;
+    const len = this.getMaxTextId() + 1;
     const newText = new CustomText(
       text || 'NAME',
       Object.assign({}, options, {
@@ -291,10 +291,7 @@ class FabricEditor {
       charSpacing,
       text,
     } = options;
-    const len =
-      this.canvas.getObjects('text').length +
-      this.canvas.getObjects('customtext').length +
-      1;
+    const len = this.getMaxTextId() + 1;
     const newText = new fabric.FabricText(
       text || 'NAME',
       Object.assign({}, options, {
@@ -312,6 +309,12 @@ class FabricEditor {
     this.canvas.add(newText);
     this.canvas.requestRenderAll();
     return newText;
+  }
+
+  getMaxTextId() {
+    const ids = this.canvas.getObjects('text').map((obj) => obj.id.split('-')[1]||0);
+    const ids2 = this.canvas.getObjects('customtext').map((obj) => obj.id.split('-')[1]||0);
+    return Math.max(...ids, ...ids2);
   }
 
   setNewText(id, options) {
@@ -391,6 +394,13 @@ class FabricEditor {
       // Fabric 6 推荐创建 SVG 对象（新方式）
       const svg = fabric.util.groupSVGElements(data.objects, data.options);
 
+      img = svg;
+    } else if (base64.slice(-4) === '.svg') {
+      const text = await fetch(base64).then((res) => res.text());
+      // Use fabric.loadSVGFromString for vector data
+      const data = await fabric.loadSVGFromString(text);
+      // Fabric 6 推荐创建 SVG 对象（新方式）
+      const svg = fabric.util.groupSVGElements(data.objects, data.options);
       img = svg;
     } else {
       // Use fabric.FabricImage for image data
@@ -485,6 +495,12 @@ class FabricEditor {
 
       input.click();
     });
+  }
+
+  destroy() {
+    this.fabricMagnifer.destroy();
+    this.canvas.dispose();
+    this.canvas = null;
   }
 }
 

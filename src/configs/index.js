@@ -178,34 +178,52 @@ export const ColorList = [
 
 export const FontTypeList = [
   {
+    type: '三极简体',
+    url: '/fonts/SJsuqian-Regular.ttf',
+    base64: '/fonts/css/SJsuqian.css',
+    img: '/fonts/image/SJsuqian.png',
+  },
+  {
+    type: '小香蕉子体',
+    url: '/fonts/XiaoXiangjiaofont.ttf',
+    base64: '/fonts/css/XiaoXiangjiaofont.css',
+    img: '/fonts/image/XiaoXiangjiaofont.png',
+  },
+  {
+    type: '阿里妈妈体',
+    url: '/fonts/AlimamaDongFangDaKai-Regular.ttf',
+    base64: '/fonts/css/阿里妈妈体.css',
+    img: '/fonts/image/阿里妈妈.png',
+  },
+  {
     type: 'American Captain',
     url: '',
     base64: '/fonts/css/American_Captain.css',
-    img: '',
+    img: '/fonts/image/american.png',
   },
   {
     type: 'Athletic',
-    url: '',
+    url: '/fonts/ChicagoAthleticSlabSerif2-8OjMn.ttf',
     base64: '/fonts/css/Athletic.css',
-    img: '',
+    img: '/fonts/image/Athletic.png',
   },
   {
     type: 'Komikazoom',
     url: '',
     base64: '/fonts/css/Komikazoom.css',
-    img: '',
+    img: '/fonts/image/komikazoom.png',
   },
   {
     type: 'Marguerite',
     url: '',
     base64: '/fonts/css/Marguerite.css',
-    img: '',
+    img: '/fonts/image/marguerite.png',
   },
   {
     type: 'DELIRIUM NCV',
     url: '',
     base64: '/fonts/css/DELIRIUM_NCV.css',
-    img: '',
+    img: '/fonts/image/delirium-ncv.png',
   },
   {
     type: 'High Trash',

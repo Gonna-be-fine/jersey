@@ -1,7 +1,7 @@
 <template>
   <div class="design-container bg-darker">
     <div class="overflow-y-auto text-gray-600">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 h-full gap-6">
+      <div class=" mx-auto grid grid-cols-1 lg:grid-cols-12 h-full gap-6">
         <!-- <div ref="glCanvas" class="w-full h-full absolute top-0 left-0 z-10"></div> -->
         <div id="edit-container" class="relative w-full h-[50vh] md:h-[70vh] lg:h-full lg:col-span-8 z-49 border-container">
           <!-- 返回按钮 - 放在顶部 -->
@@ -302,6 +302,7 @@
             <LogoTab
               v-if="currentTab === 'logo'"
               :logos="currentRenderData.logos"
+              @selectElement="selectElement"
               @uploadLogo="uploadLogo"
               @removeLogo="removeLogo"
             />

@@ -622,6 +622,10 @@ export class World extends EventDispatch {
       }
     }
 
+    Object.keys(this.resource).forEach((key) => {
+      this.resource[key].fabricEditor.destroy();
+    }); // 清空this.resource
+
     // 清空引用
     this.scene = null;
     this.camera = null;

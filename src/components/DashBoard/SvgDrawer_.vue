@@ -15,7 +15,7 @@
           <div>
             <h2 class="text-xl font-bold text-gray-900 tracking-tight">Library</h2>
             <p class="text-sm text-gray-500 mt-0.5">
-              {{ isInitialLoading ? "Loading assets..." : `${totalItems} assets found` }}
+              {{ isInitialLoading ? "Loading assets..." : `${filteredItems.length} assets found` }}
             </p>
           </div>
           <button
@@ -74,7 +74,7 @@
 
             <template v-else>
               <button
-                v-for="cat in computedCategories"
+                v-for="cat in categories"
                 :key="cat"
                 @click="selectedCategory = cat"
                 class="group flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200"
@@ -87,7 +87,7 @@
                   class="hidden md:inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-opacity-20"
                   :class="selectedCategory === cat ? 'bg-white text-white' : 'bg-gray-200 text-gray-500 group-hover:bg-gray-100'"
                 >
-                  {{ cat === 'All' ? totalItems : getCategoryCount(cat) }}
+                  {{ cat === 'All' ? items.length : items.filter(i => i.category === cat).length }}
                 </span>
               </button>
             </template>
@@ -129,7 +129,7 @@
                 class="w-10 h-10 mb-2 text-gray-600 transition-transform duration-300 group-hover:scale-110"
                 v-html="item.content"
               ></div>
-              <img v-else :src="item.pngUrl" class="w-10 h-10 mb-2 text-gray-600 transition-transform duration-300 group-hover:scale-110 object-contain" />
+              <img v-else :src="item.svgUrl" class="w-10 h-10 mb-2 text-gray-600 transition-transform duration-300 group-hover:scale-110 object-contain" />
               <span class="text-[10px] text-gray-400 font-medium truncate w-full text-center group-hover:text-blue-600 transition-colors">
                 {{ item.name }}
               </span>
@@ -159,15 +159,8 @@
 
           <!-- Infinite scroll trigger -->
           <div
-            v-if="!isInitialLoading && items.length < totalItems && !isLoadingMore"
+            v-if="!isInitialLoading && displayedItems.length < filteredItems.length"
             ref="loadingTrigger"
-            class="py-8 flex justify-center w-full"
-          >
-          </div>
-          
-          <!-- Loading more indicator -->
-          <div
-            v-if="isLoadingMore"
             class="py-8 flex justify-center w-full"
           >
             <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-200 border-b-blue-600"></div>
@@ -188,8 +181,23 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { get } from '../../utils/request'
+function generateSvgLibrary() {
+  const list = []
+  const cats = ["Animals", "Shapes", "Arrows", "UI", "Logos"]
 
+  for (let i = 0; i < 100; i++) {
+    const cat = cats[i % cats.length]
+    list.push({
+      id: i,
+      name: `Icon ${i}`,
+      category: cat,
+      content: `<svg viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                  <circle cx='12' cy='12' r='8' stroke-width='2'></circle>
+                </svg>`
+    })
+  }
+  return list
+}
 const props = defineProps({
   isOpen: Boolean,
   onClose: Function,
@@ -200,125 +208,69 @@ const PAGE_SIZE = 40
 
 // data
 const items = ref([])
-const categories = ref([])
 const isInitialLoading = ref(true)
 const selectedCategory = ref("All")
 const searchQuery = ref("")
 const visibleCount = ref(PAGE_SIZE)
-const totalItems = ref(0)
-const currentPage = ref(1)
-const isLoadingMore = ref(false)
 
 // refs
 const scrollContainer = ref(null)
 const loadingTrigger = ref(null)
 
-// API 基础 URL
-const API_BASE = '/resources'
-
-// 加载类别
-async function loadCategories() {
-  try {
-    const data = await get(`${API_BASE}/categories`)
-    console.log(data)
-    categories.value = data
-  } catch (error) {
-    console.error('加载类别失败:', error)
-  }
-}
-
-// 加载资源
-async function loadResources(append = false) {
-  try {
-    if (!append) {
-      isInitialLoading.value = true
-      currentPage.value = 1
-      items.value = []
-    } else {
-      isLoadingMore.value = true
-    }
-
-    const params = new URLSearchParams({
-      page: currentPage.value.toString(),
-      limit: PAGE_SIZE.toString(),
-    })
-
-    if (selectedCategory.value !== 'All') {
-      params.append('category', selectedCategory.value)
-    }
-
-    if (searchQuery.value.trim()) {
-      params.append('search', searchQuery.value.trim())
-    }
-
-    const data = await get(`${API_BASE}?${params}`)
-
-    const formattedItems = data.items.map(item => ({
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      category: item.category.name,
-      content: item.svgContent,
-      svgUrl: `${import.meta.env.VITE_RESOURCE_URL}/resources/${item.relativePath}`,
-      pngUrl: item.hasPng ? `${import.meta.env.VITE_RESOURCE_URL}/resources/${item.relativePath.replace('.svg', '.png')}` : null
-    }))
-
-    if (append) {
-      items.value.push(...formattedItems)
-    } else {
-      items.value = formattedItems
-    }
-
-    totalItems.value = data.total
-  } catch (error) {
-    console.error('加载资源失败:', error)
-  } finally {
-    isInitialLoading.value = false
-    isLoadingMore.value = false
-  }
-}
-
-// 初始加载
+// fetch data
 onMounted(async () => {
-  await loadCategories()
-  await loadResources()
+  isInitialLoading.value = true
+  await new Promise(r => setTimeout(r, 600))
+  items.value = generateSvgLibrary()
+  isInitialLoading.value = false
 })
 
-// computed categories
-const computedCategories = computed(() => {
-  const categoryNames = categories.value.map(c => c.name)
-  return ["All", ...categoryNames.sort()]
+// categories
+const categories = computed(() => {
+  const set = new Set(items.value.map(i => i.category))
+  return ["All", ...Array.from(set).sort()]
 })
 
-// 获取类别数量
-function getCategoryCount(categoryName) {
-  if (categoryName === 'All') {
-    return totalItems.value
+// filter
+const filteredItems = computed(() => {
+  let arr = items.value
+
+  if (selectedCategory.value !== "All") {
+    arr = arr.filter(i => i.category === selectedCategory.value)
   }
-  const category = categories.value.find(c => c.name === categoryName)
-  return category ? category.resourceCount : 0
-}
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase()
+    arr = arr.filter(i => i.name.toLowerCase().includes(q))
+  }
+  return arr
+})
 
-// displayed items (for infinite scroll)
-const displayedItems = computed(() => items.value)
+// displayed
+const displayedItems = computed(() =>
+  filteredItems.value.slice(0, visibleCount.value)
+)
 
 // reset pagination when filters change
 watch([selectedCategory, searchQuery], () => {
-  loadResources()
+  visibleCount.value = PAGE_SIZE
+  if (scrollContainer.value) scrollContainer.value.scrollTop = 0
 })
 
 // infinite scroll
 let observer = null
-watch(loadingTrigger, () => {
+watch(displayedItems, () => {
   if (!loadingTrigger.value) return
   if (observer) observer.disconnect()
 
-  if (isInitialLoading.value || isLoadingMore.value) return
+  if (isInitialLoading.value) return
 
   observer = new IntersectionObserver(
     entries => {
-      if (entries[0].isIntersecting && items.value.length < totalItems.value) {
-        loadMoreItems()
+      if (entries[0].isIntersecting) {
+        visibleCount.value = Math.min(
+          visibleCount.value + PAGE_SIZE,
+          filteredItems.value.length
+        )
       }
     },
     { root: scrollContainer.value, threshold: 0.1, rootMargin: "200px" }
@@ -326,19 +278,10 @@ watch(loadingTrigger, () => {
   observer.observe(loadingTrigger.value)
 })
 
-// load more items
-async function loadMoreItems() {
-  if (isLoadingMore.value || items.value.length >= totalItems.value) return
-  
-  currentPage.value++
-  await loadResources(true)
-}
-
 // clear all
 const clearFilters = () => {
   selectedCategory.value = "All"
   searchQuery.value = ""
-  loadResources()
 }
 </script>
 

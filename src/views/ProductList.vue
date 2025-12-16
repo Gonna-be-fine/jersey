@@ -270,7 +270,7 @@
         >
           <div class="p-3">
             <div
-              class="relative w-full h-64 rounded overflow-hidden bg-gray-100 dark:bg-gray-700"
+              class="relative w-full h-64 lg:h-96 rounded overflow-hidden bg-gray-100 dark:bg-gray-700"
               @mouseenter="showSecondImage(product.id)"
               @mouseleave="hideSecondImage(product.id)"
             >

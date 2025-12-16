@@ -4,7 +4,6 @@ import { useToast } from './toast';
 import router from '../router';
 
 // 创建axios实例
-console.log(process.env.NODE_ENV)
 const request = axios.create({
   // 在开发环境使用相对路径，让 Vite 代理处理
   baseURL: process.env.NODE_ENV === 'development' ? '/api' : import.meta.env.VITE_API_URL,
@@ -58,5 +57,32 @@ request.interceptors.response.use(
     return Promise.reject(error.response?.data || { message: errorMsg });
   }
 );
+
+export async function get(url, params = {}) {
+  try {
+    const { data, status, message } = await request.get(url, { params });
+    if (status !== 200) {
+      throw new Error(message)
+    }
+    return data;
+  } catch (error) {
+    console.error('GET请求错误:', error);
+    throw error;
+  }
+}
+
+export async function post(url, params = {}) {
+  try {
+    const { data, status, message } = await request.post(url, params);
+    if (status !== 200) {
+      throw new Error(message)
+    }
+    return data;
+  } catch (error) {
+    console.error('POST请求错误:', error);
+    throw error;
+  }
+}
+
 
 export default request; 

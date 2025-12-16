@@ -177,12 +177,13 @@
     </div>
 
     <!-- 右侧弹出的 SVG 素材库组件 -->
-    <SvgDrawer
-      :isOpen="isRepoOpen"
-      :svgLibrary="svgLibrary"
-      @close="isRepoOpen = false"
-      @select="handleLibrarySelect"
-    />
+    <div>
+      <SvgDrawer
+        :isOpen="isRepoOpen"
+        @close="isRepoOpen = false"
+        @select="handleLibrarySelect"
+      />
+    </div>
   </div>
 </template>
 
@@ -197,7 +198,6 @@ const emit = defineEmits();
 const fileInputRef = ref(null);
 
 const isRepoOpen = ref(false);
-const svgLibrary = ref([]);
 
 // ---- helpers ----
 const isRawSvg = (str) => typeof str === 'string' && str.trim().startsWith('<svg');
@@ -229,118 +229,16 @@ const selectElement = (id) => {
 
 // ---- Drawer selection ----
 const handleLibrarySelect = (item) => {
-  if (!item || !item.content) return;
-  emit('uploadLogo', item.content);
+  if (!item || !item.svgUrl) return;
+  emit('uploadLogo', item.svgUrl);
   isRepoOpen.value = false;
 };
 
 
 // ---- Fetch SVG from server ----
 onMounted(async () => {
-  // const res = await fetch(props.fetchUrl);
-  svgLibrary.value = getFallbackLibrary();
-  // svgLibrary.value = await res.json();
+  
 });
-
-// ---- fallback demo library (follows the example you provided earlier) ----
-function getFallbackLibrary() {
-  // 基础图标（Fabric 可解析：无 class，无 currentColor）
-  const base = [
-    {
-      id: 'star',
-      name: 'Star',
-      category: 'Shapes',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-      </svg>`
-    },
-    {
-      id: 'circle',
-      name: 'Circle',
-      category: 'Shapes',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-      </svg>`
-    },
-    {
-      id: 'heart',
-      name: 'Heart',
-      category: 'Icons',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-      </svg>`
-    },
-    {
-      id: 'zap',
-      name: 'Lightning',
-      category: 'Icons',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>`
-    },
-    {
-      id: 'smile',
-      name: 'Smile',
-      category: 'Emoji',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-      </svg>`
-    },
-    {
-      id: 'sun',
-      name: 'Sun',
-      category: 'Nature',
-      content: `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="5"></circle>
-        <line x1="12" y1="1" x2="12" y2="3"></line>
-        <line x1="12" y1="21" x2="12" y2="23"></line>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-        <line x1="1" y1="12" x2="3" y2="12"></line>
-        <line x1="21" y1="12" x2="23" y2="12"></line>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-      </svg>`
-    }
-  ];
-
-  // 可生成的颜色（hex，Fabric 可识别）
-  const colors = [
-    '#f87171', '#60a5fa', '#4ade80', '#a78bfa', '#f472b6', '#818cf8'
-  ];
-
-  const result = [...base];
-
-  // 自动生成 30 个变体
-  for (let i = 0; i < 30; i++) {
-    const baseItem = base[i % base.length];
-    const color = colors[i % colors.length];
-
-    // 用正则替换原 stroke="xxxx"
-    const content = baseItem.content.replace(
-      /stroke="#[0-9a-fA-F]{3,6}"/,
-      `stroke="${color}"`
-    );
-
-    result.push({
-      id: `gen-${i}`,
-      name: `${baseItem.name} ${i + 1}`,
-      category: i % 2 === 0 ? 'Generated' : baseItem.category,
-      content
-    });
-  }
-
-  return result;
-}
 
 </script>
 

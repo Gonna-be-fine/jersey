@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 text-gray-800 dark:text-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class=" mx-auto px-4 sm:px-6 lg:px-8">
       <!-- 面包屑导航 -->
       <nav class="flex mb-8" aria-label="Breadcrumb">
         <ol class="flex items-center space-x-2">
