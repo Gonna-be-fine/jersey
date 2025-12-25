@@ -4,13 +4,14 @@ import { loadSVGFromString, loadSVGFromURL } from 'fabric';
 import * as fabric from 'fabric';
 import { initAligningGuidelines } from 'fabric/extensions';
 import { SvgFontManager } from './SvgFontManager';
-import { throttle } from 'lodash';
+import { clone, throttle } from 'lodash';
 import _fontManager from '../../utils/FontManager';
 import CustomText from './CustomText';
-import { pickTextOptions } from '../../configs';
+import { CareLabel, pickTextOptions } from '../../configs';
 import { isSVGString } from '../utils/utils';
 import PerformanceDetector from './PerformanceDetector';
 import { FabricMagnifier } from './FabricMagnifer';
+import BrandLogo from '@/assets/logo/M1.svg';
 
 window.fabric = fabric;
 const DEFAULTSIZE = 2048;
@@ -162,14 +163,22 @@ class FabricEditor {
   async loadJson() {
     const { textureSvg } = this.options;
     // const json = this.cleanJson(url);
-    // console.log('-------', json);
     const svgWidth = DEFAULTSIZE || 2048;
     const svgHeight = DEFAULTSIZE || 2048;
     this.canvas.setDimensions({
       width: svgWidth,
       height: svgHeight,
     });
-    textureSvg.objects = textureSvg.objects.filter((obj) => !(obj.type === 'Text' && (obj.text.includes('MACHINE') || obj.text.includes('MADE IN AUSTRALIA') || obj.text.includes('100% POLYESTER'))));
+    textureSvg.objects = textureSvg.objects.filter(
+      (obj) =>
+        !(
+          obj.type === 'Text' &&
+          (obj.text.includes('MACHINE') ||
+            obj.text.includes('MADE IN AUSTRALIA') ||
+            obj.text.includes('100% POLYESTER'))
+        )
+    );
+    // 加载font
     for (const obj of textureSvg.objects) {
       if (obj.type === 'Text') {
         await _fontManager.loadFont(obj.fontFamily);
@@ -191,6 +200,10 @@ class FabricEditor {
       obj.setCoords();
       // obj.selectable = false;
     });
+
+    // MARK: 默认添加
+    this.fixDefaultDesign();
+
     this.canvas.renderAll();
   }
 
@@ -260,7 +273,7 @@ class FabricEditor {
     } = options;
     const len = this.getMaxTextId() + 1;
     const newText = new CustomText(
-      text || 'NAME',
+      text.replaceAll('\n', '') || 'NAME',
       Object.assign({}, options, {
         id: options.id || 'text-' + len,
         left: left || 360,
@@ -295,7 +308,7 @@ class FabricEditor {
     const newText = new fabric.FabricText(
       text || 'NAME',
       Object.assign({}, options, {
-        id: 'text-' + len,
+        id: options.id || 'text-' + len,
         left: left || 360,
         top: top || 700,
         fontFamily: fontFamily || 'Komikazoom',
@@ -312,8 +325,12 @@ class FabricEditor {
   }
 
   getMaxTextId() {
-    const ids = this.canvas.getObjects('text').map((obj) => obj.id.split('-')[1]||0);
-    const ids2 = this.canvas.getObjects('customtext').map((obj) => obj.id.split('-')[1]||0);
+    const ids = this.canvas
+      .getObjects('text')
+      .map((obj) => obj.id.split('-')[1] || 0);
+    const ids2 = this.canvas
+      .getObjects('customtext')
+      .map((obj) => obj.id.split('-')[1] || 0);
     return Math.max(...ids, ...ids2);
   }
 
@@ -381,22 +398,19 @@ class FabricEditor {
     return obj;
   }
 
-  async addLogo(base64, options = {}) {
-    const canvas = this.canvas;
-    const id = this.canvas.getObjects('image').length + 1;
-
+  async loadImage(input) {
     let img = null;
     // 1. Check if the base64 string is an SVG data URI
-    if (isSVGString(base64)) {
+    if (isSVGString(input)) {
       // Use fabric.loadSVGFromString for vector data
-      const data = await fabric.loadSVGFromString(base64);
+      const data = await fabric.loadSVGFromString(input);
 
       // Fabric 6 推荐创建 SVG 对象（新方式）
       const svg = fabric.util.groupSVGElements(data.objects, data.options);
 
       img = svg;
-    } else if (base64.slice(-4) === '.svg') {
-      const text = await fetch(base64).then((res) => res.text());
+    } else if (input.slice(-4) === '.svg') {
+      const text = await fetch(input).then((res) => res.text());
       // Use fabric.loadSVGFromString for vector data
       const data = await fabric.loadSVGFromString(text);
       // Fabric 6 推荐创建 SVG 对象（新方式）
@@ -404,11 +418,19 @@ class FabricEditor {
       img = svg;
     } else {
       // Use fabric.FabricImage for image data
-      img = await fabric.FabricImage.fromURL(base64, {
+      img = await fabric.FabricImage.fromURL(input, {
         crossOrigin: 'anonymous',
       });
     }
-    img.id = `img-${id}`;
+    return img;
+  }
+
+  async addLogo(base64, options = {}) {
+    const canvas = this.canvas;
+    const id = this.canvas.getObjects('image').length + 1;
+
+    let img = await this.loadImage(base64);
+    img.id = `image-${id}`;
 
     // 自动缩放适配画布
     const canvasWidth = canvas.getWidth() / 8;
@@ -458,7 +480,7 @@ class FabricEditor {
             const img = await fabric.FabricImage.fromURL(base64, {
               crossOrigin: 'anonymous',
             });
-            img.id = `img-${id}`;
+            img.id = `image-${id}`;
             // 自动缩放适配画布
             const canvasWidth = canvas.getWidth() / 8;
             const canvasHeight = canvas.getHeight() / 8;
@@ -495,6 +517,118 @@ class FabricEditor {
 
       input.click();
     });
+  }
+
+  async copyElement(objectId) {
+    const activeObject = this.canvas.getObjectById(objectId);
+    if (!activeObject) {
+      console.warn('找不到对象', objectId);
+      return;
+    }
+    let id = objectId + '-copy';
+    if (activeObject.type === 'text' || activeObject.type === 'customtext') {
+      id = 'text-' + (this.getMaxTextId() + 1);
+    } else {
+      id =
+        `${activeObject.type}-` +
+        (this.canvas.getObjects(activeObject.type).length + 1);
+    }
+    const cloned = await activeObject.clone();
+    cloned.set({
+      id,
+      left: activeObject.left + 20,
+      top: activeObject.top + 20,
+      evented: true,
+    });
+
+    this.canvas.add(cloned);
+    this.canvas.setActiveObject(cloned);
+    this.canvas.requestRenderAll();
+    return cloned;
+  }
+
+  fixDefaultDesign() {
+    // 替换品牌logo
+    const logo = this.canvas.getObjectById('FE_LOGO');
+    if (logo) {
+      const { originX, originY } = logo;
+      const { width, height, left, top } = logo.getBoundingRect();
+      this.addLogo(BrandLogo, {
+        id: 'logo-brand-front',
+        left,
+        top,
+        scaleX: 0.165,
+        scaleY: 0.165,
+        originX,
+        originY,
+        selectable: false,
+      });
+      this.addLogo(BrandLogo, {
+        id: 'logo-brand-back',
+        left: left + width,
+        top: top + height,
+        scaleX: 0.165,
+        scaleY: 0.165,
+        originX: 'right',
+        originY: 'bottom',
+        selectable: false,
+      });
+      this.canvas.remove(logo);
+    }
+    // 添加洗水唛
+    fabric.util.enlivenObjects([CareLabel]).then((objects) => {
+      const textObj = objects[0];
+      textObj.selectable = false;
+      this.canvas.add(textObj);
+      this.canvas.setActiveObject(textObj);
+    });
+  }
+
+  /**
+   * 替换 Fabric.Image 的内容（不创建新对象）
+   * 支持：
+   *  - 普通图片 URL
+   *  - SVG URL
+   *  - SVG 字符串
+   *
+   * @param {fabric.Image} imgObj   需要被替换的 Image 对象
+   * @param {string} source         url 或 svg 字符串
+   */
+  async replaceFabricImage(imgObj, source) {
+    if (!imgObj || !source) return;
+    const canvas = this.canvas;
+    // 记录原对象状态
+    const { id, left, top, angle, scaleX, scaleY, originX, originY } = imgObj;
+
+    // 旧对象「可视尺寸」
+    const oldMaxSide = Math.max(
+      imgObj.getScaledWidth(),
+      imgObj.getScaledHeight()
+    );
+
+    const newImg = await this.loadImage(source);
+    // 3️⃣ 计算比例（关键）
+    const newMaxSide = Math.max(newImg.width, newImg.height);
+    const scale = oldMaxSide / newMaxSide;
+    newImg.set({
+      id,
+      left,
+      top,
+      angle,
+      scaleX: scale,
+      scaleY: scale,
+      originX,
+      originY,
+    });
+
+    newImg.setCoords();
+
+    // 4️⃣ 删除旧对象，添加新对象
+    canvas.remove(imgObj);
+    canvas.add(newImg);
+    canvas.setActiveObject(newImg);
+
+    canvas.requestRenderAll();
   }
 
   destroy() {

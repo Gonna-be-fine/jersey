@@ -3,8 +3,9 @@
     class="flex items-center justify-between px-4 h-16 bg-background/90 backdrop-blur-lg dark:bg-gray-900 dark:text-gray-100">
     <h1 class="text-lg font-bold flex items-center">
       <nav class="mr-8">
-        <router-link to="/" class="font-primary text-2xl font-bold text-text">
-          TeeCraft
+        <router-link to="/" class="flex font-primary text-2xl font-bold text-text">
+          <img class="w-12 bg-white" src="@/assets/logo/marker.svg" alt="MoMoFit">
+          <img class="w-24 bg-white" src="@/assets/logo/text.svg" alt="MoMoFit">
         </router-link>
       </nav>
       <div class="flex gap-8">

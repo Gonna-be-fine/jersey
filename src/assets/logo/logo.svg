@@ -1,0 +1,22 @@
+<svg width="520" height="120" viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .text {
+        font-family: 'Poppins', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 600;
+        fill: #111111;
+      }
+    </style>
+  </defs>
+
+  <!-- Mo -->
+  <text x="20" y="80" font-size="64" class="text">M</text>
+  <circle cx="92" cy="58" r="18" fill="none" stroke="#111111" stroke-width="6"/>
+  
+  <!-- Mo -->
+  <text x="125" y="80" font-size="64" class="text">M</text>
+  <circle cx="197" cy="58" r="18" fill="none" stroke="#111111" stroke-width="6"/>
+
+  <!-- Fit -->
+  <text x="240" y="80" font-size="64" class="text">Fit</text>
+</svg>

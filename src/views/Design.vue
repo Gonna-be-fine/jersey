@@ -294,6 +294,7 @@
               v-if="currentTab === 'text'"
               :texts="currentRenderData.texts"
               @addText="addText"
+              @copyText="copyText"
               @removeText="removeText"
               @selectElement="selectElement"
               @updateFontFamily="updateFontFamily"
@@ -411,6 +412,7 @@ const setTab = (tab) => {
 // SVG相关方法
 const initVarFromTexture = async (data) => {
   renderData.value = styleManager.getRenderFromJson(data);
+  console.log(renderData.value)
   setCurrentRenderData();
 };
 
@@ -443,7 +445,12 @@ const addText = () => {
   newTextOptions.id = newText.id;
   currentRenderData.value.texts.unshift(newTextOptions);
 };
-
+const copyText = async (index) => {
+  const newTextOptions = JSON.parse(JSON.stringify(currentRenderData.value.texts[index]));
+  const newText = await world.getSvgEditorByType(modelType.value).copyElement(newTextOptions.id);
+  newTextOptions.id = newText.id;
+  currentRenderData.value.texts.unshift(newTextOptions);
+}
 const removeText = (index) => {
   world.getSvgEditorByType(modelType.value).removeObjectById(currentRenderData.value.texts[index].id);
   currentRenderData.value.texts.splice(index, 1);
@@ -468,7 +475,6 @@ const updateFontFamily = (index, fontType) => {
   world.getSvgEditorByType(modelType.value).updateText(newText.id, { fontFamily: fontType });
 }
 const handleCurveToggled = (options) => {
-  console.log(options);
   world.getSvgEditorByType(modelType.value).setNewText(options.id, options);
 }
 watch(
@@ -517,7 +523,6 @@ const switch2_3D = (type) => {
 // Logo相关方法
 const uploadLogo = async (url) => {
   const imgObj = await world.getSvgEditorByType(modelType.value).addLogo(url);
-  console.log(imgObj)
   currentRenderData.value.logos.unshift({ id: imgObj.id, url });
 };
 const removeLogo = (index) => {
@@ -578,7 +583,6 @@ const saveDesign = async () => {
 onMounted(async () => {
   const data = await getDataForRender();
   if (!data) return;
-  console.log(data);
   currentProduct.value = data;
   clothType.value = data.clothType;
   modelType.value = data.clothType === 'suit' ? 'jersey' : data.clothType;;

@@ -43,11 +43,19 @@
           />
           <span class="font-medium mr-2 text-ellipsis w-28 overflow-hidden whitespace-nowrap">{{ text.text || 'New Text' }}</span>
         </div>
-        <div
-          class="cursor-pointer px-2 py-1"
-          @click="openDialog(index)"
-        >
-          <font-awesome-icon :icon="['fas', text.isExpanded ? 'chevron-up' : 'chevron-down']" />
+        <div class="flex">
+          <div
+            class="cursor-pointer px-2 py-1"
+            @click="copyElement(index)"
+          >
+            <font-awesome-icon icon="copy" />
+          </div>
+          <div
+            class="cursor-pointer px-2 py-1"
+            @click="openDialog(index)"
+          >
+            <font-awesome-icon :icon="['fas', text.isExpanded ? 'chevron-up' : 'chevron-down']" />
+          </div>
         </div>
       </div>
 
@@ -59,16 +67,19 @@
           <label class="w-1/3">字体</label>
           <div class="w-2/3">
             <input
+              v-if="text.isCurved"
               v-model="text.text"
               type="text"
               :placeholder="'Text ' + (index + 1)"
               class="input-element w-full"
             />
-            <!-- <select @change="(e) =>setFontFamily(index, e.target.value)"
-              :value="text.fontFamily"
-              class="input-element mt-2 w-full">
-              <option v-for="font in fontOptions" :key="font.fontType" :value="font.fontType">{{ font.fontType }}</option>
-            </select> -->
+            <textarea
+              v-else
+              v-model="text.text"
+              type="text"
+              :placeholder="'Text ' + (index + 1)"
+              class="input-element w-full"
+            />
             <div class="mt-2">
               <FontSelectionVue
                 :currentFont="text.fontFamily"
@@ -205,26 +216,7 @@
             </div>
           </div>
         </div>
-        <!-- <div class="mt-4 flex items-center justify-between">
-          <label class="w-1/3">弯曲</label>
-          <div class="flex-1 grid gap-2 grid-cols-2 mt-2 w-full box-border">
-            <div class="px-2 flex items-center bg-darker rounded-lg mr-2">
-            </div>
-            <div class="px-2 flex items-center bg-darker rounded-lg">
-              <img
-                class="w-4 h-4 mr-1"
-                src='/images/assets/font-spacing-updown.svg'
-              />
-              <input
-                v-model="text.curveValue"
-                type="number"
-                min="0"
-                max="100"
-                class="min-w-0 input-element box-border"
-              />
-            </div>
-          </div>
-        </div> -->
+
         <div class="mt-4 flex items-center justify-between">
           <label class="w-1/3">颜色</label>
           <div class="w-2/3 px-2 bg-darker rounded-lg flex">
@@ -315,6 +307,10 @@ const removeText = (index) => {
   emit('removeText', index);
 };
 
+const copyElement = (index) => {
+  emit('copyText', index);
+}
+
 const updateText = (index) => {
   emit('updateText', index);
 }
@@ -378,6 +374,7 @@ const toggleCurve = (index) => {
   const textItem = props.texts[index];
   textItem.isCurved = !textItem.isCurved;
 
+  textItem.text = textItem.text.replaceAll('\n', '');
   // 1. 开关状态通知事件:
   // 可以在这里发出一个事件，通知父组件开关状态已改变
   emit('curveToggled', {
@@ -386,7 +383,7 @@ const toggleCurve = (index) => {
     textOptions: textItem,
     isCurved: textItem.isCurved
   });
-  
+
   // 2. 确保更新到画布：
   // 调用父组件的 updateText 方法以同步更改到画布/编辑器
   emit('updateText', index);

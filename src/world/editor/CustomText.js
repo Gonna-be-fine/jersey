@@ -146,7 +146,8 @@ export default class CustomText extends Group {
     };
   }
 
-  static async fromObject(object, { canvas }) {
+  static async fromObject(object, options={}) {
+    const { canvas } = options || {};
     const { text, ...rest } = object;
     const textOptions = object.objects.find((v) => v.type === 'Text');
     const obj = {

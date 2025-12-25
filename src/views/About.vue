@@ -4,7 +4,7 @@
     <section class="page-header">
       <div class="container">
         <h1 class="page-title">关于我们</h1>
-        <p class="page-subtitle">探索TeeCraft的品牌故事</p>
+        <p class="page-subtitle">探索MoMoFit的品牌故事</p>
       </div>
     </section>
 
@@ -14,7 +14,7 @@
         <div class="story-content">
           <div class="story-text">
             <h2>我们的故事</h2>
-            <p>TeeCraft诞生于对优质葡萄酒的热爱与追求。我们致力于为爱好者们带来世界各地精选的葡萄酒,让每一位顾客都能享受到美酒带来的愉悦。</p>
+            <p>MoMoFit诞生于对优质葡萄酒的热爱与追求。我们致力于为爱好者们带来世界各地精选的葡萄酒,让每一位顾客都能享受到美酒带来的愉悦。</p>
             <p>从法国波尔多到意大利托斯卡纳,从澳大利亚到智利,我们的产品来自全球最负盛名的产区,每一款酒都经过专业团队的严格筛选。</p>
           </div>
           <div class="story-image">

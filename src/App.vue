@@ -5,7 +5,7 @@
         <nav class="container mx-auto flex justify-between items-center py-4 px-8">
           <div class="flex items-center gap-12">
             <router-link to="/" class="font-primary text-2xl font-bold text-text">
-              TeeCraft
+              MoMoFit
             </router-link>
             
             <div class="flex gap-8">
