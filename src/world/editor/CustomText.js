@@ -85,9 +85,7 @@ export default class CustomText extends Group {
     });
   }
 
-  init() {
-
-  }
+  init() {}
 
   _showPath() {
     if (this.textElement.path) {
@@ -146,18 +144,17 @@ export default class CustomText extends Group {
     };
   }
 
-  static async fromObject(object, options={}) {
+  static async fromObject(object, options = {}) {
     const { canvas } = options || {};
     const { text, ...rest } = object;
     const textOptions = object.objects.find((v) => v.type === 'Text');
     const obj = {
       ...rest,
-      ...CustomText.pickTextProps(textOptions)
+      ...CustomText.pickTextProps(textOptions),
     };
     const instance = new CustomText(text, obj);
     const curveValue = object.curveValue || 50;
     const charSpacing = textOptions.charSpacing || 0;
-
 
     if (canvas) instance.canvas = canvas;
 
@@ -169,7 +166,7 @@ export default class CustomText extends Group {
       instance.on('added', () => {
         setTimeout(() => {
           instance.applyCurvedText(curveValue, charSpacing);
-        }, 200)
+        }, 200);
       });
     }
 
@@ -307,17 +304,16 @@ export default class CustomText extends Group {
     if (curveIntensity === 0) {
       startX = -textWidth / 2;
       endX = textWidth / 2;
-      startY = activeText.top;
-      endY = activeText.top;
-      theta = 0;
+      startY = 0;
+      endY = 0;
       pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
     } else {
       theta = Math.PI * (curveIntensity / 50);
       radius = textWidth / theta;
       startX = Math.floor(-radius * Math.sin(theta / 2) * 10) / 10;
       endX = Math.ceil(radius * Math.sin(theta / 2) * 10) / 10;
-      startY = activeText.top;
-      endY = activeText.top;
+      startY = 0;
+      endY = 0;
       pathD = `M ${startX} ${startY} A ${radius} ${radius} 0 0 ${sweepFlag} ${endX} ${endY}`;
     }
 

@@ -1,0 +1,35 @@
+{
+  "id": 1002,
+  "name": "T-shirt KB1-JY201 - 男款",
+  "genderType": "boy",
+  "sportType": "basketball",
+  "clothType": "jersey",
+  "description": "-",
+  "pictures": ["/design_1002/t-shirt-man.png"],
+  "isComb": true,
+  "relativeId": 0,
+  "price": 65.6,
+  "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+  "discountId": 0,
+  
+  "scene": {
+    "backgroundColor": "#5b5b5b",
+    "cameraPosition": {
+      "x": -0.009666748088079795,
+      "y": 0.1459023549040876,
+      "z": 0.6137803763666974
+    },
+    "model": {
+      "url": "/images/clothes/design_1002/1.glb",
+      "position": {
+        "x": 0,
+        "y": -1.2,
+        "z": 0
+      }
+    },
+    "texture": {
+      "main": "/images/clothes/design_1002/1.svg",
+      "edit": "/texture/style/editText.svg"
+    }
+  }
+}

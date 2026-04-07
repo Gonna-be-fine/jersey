@@ -5,7 +5,7 @@
       <nav class="mr-8">
         <router-link to="/" class="flex font-primary text-2xl font-bold text-text">
           <img class="w-12 bg-white" src="@/assets/logo/marker.svg" alt="MoMoFit">
-          <img class="w-24 bg-white" src="@/assets/logo/text.svg" alt="MoMoFit">
+          <img class="hidden sm:block w-24 bg-white" src="@/assets/logo/text.svg" alt="MoMoFit">
         </router-link>
       </nav>
       <div class="flex gap-8">

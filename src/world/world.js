@@ -37,7 +37,7 @@ export class World extends EventDispatch {
     }
     this.renderer.setClearColor(this.options.backgroundColor || '#1e1e1e');
     // 颜色矫正
-    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    // this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
     // scene
     this.scene = new THREE.Scene();
@@ -67,7 +67,7 @@ export class World extends EventDispatch {
     this.controls.maxDistance = 100;
 
     // lights
-    this.addLights();
+    this.addLights(this.options.lights);
 
     // resize handler
     this.onWindowResize = () => {
@@ -99,13 +99,13 @@ export class World extends EventDispatch {
   /**
    * @description: 添加灯光
    */
-  addLights() {
-    const lights = new THREE.Group();
-    lights.name = 'lights';
-    lights.add(new THREE.AmbientLight(0xffffff, 1));
-    this.scene.add(lights);
+  addLights(light) {
+    // const lights = new THREE.Group();
+    // lights.name = 'lights';
+    // lights.add(new THREE.AmbientLight(0xffffff, 1));
+    // this.scene.add(lights);
     const objectLoader = new THREE.ObjectLoader();
-    const o = objectLoader.parse(Lights);
+    const o = objectLoader.parse(light || Lights);
     this.scene.add(o);
     // // 添加lightHelper
     // o.traverse(v => {
@@ -248,6 +248,10 @@ export class World extends EventDispatch {
     loader.setDRACOLoader(dracoLoader);
     loader.setKTX2Loader(ktxLoader);
 
+    this.modelGroup = new THREE.Group();
+    this.modelGroup.name = 'modelGroup';
+    this.scene.add(this.modelGroup);
+
     const modelList = this.options.model;
     this.resource = {};
     let index = 0;
@@ -261,14 +265,20 @@ export class World extends EventDispatch {
           clothGltf.position.copy(model.position);
         }
         console.log(gltf.scene);
-        this.scene.add(gltf.scene);
+        this.modelGroup.add(gltf.scene);
         this.updateCameraAndControls(this.scene, 'front');
         clothGltf.name = model.type;
-        clothGltf.children.forEach((v) => {
+        // clothGltf.children.forEach((v) => {
+        clothGltf.traverse((v) => {          
           if (v.isMesh) {
             v.userData.type = model.type;
             // 设置normalMap为空，去除DirectionalLight对衣服的会有白色块
-            v.material.normalMap = null;
+            // v.material.normalMap = null;
+            v.material.map = null;
+            // TODO: 袖子
+            if (v.name === "c_1_2") {
+              return;
+            }
             if (!this.resource[model.type].material) {
               this.resource[model.type].material = v.material;
             }
@@ -313,7 +323,7 @@ export class World extends EventDispatch {
         // 设置 raycaster
         this.raycaster.setFromCamera(this.mouse, this.camera);
         // 检测交互对象
-        const intersects = this.raycaster.intersectObjects(this.scene.children);
+        const intersects = this.raycaster.intersectObject(this.modelGroup);
         if (intersects.length > 0) {
           event.preventDefault();
           event.stopPropagation();
@@ -365,10 +375,11 @@ export class World extends EventDispatch {
     }
     const fabricEditor = new FabricEditor(this, _options);
     this.resource[type].fabricEditor = fabricEditor;
-
+    fabricEditor.texture.colorSpace = THREE.SRGBColorSpace
     let firstMesh = null;
     this.resource[type].model.traverse((v) => {
       if (!v.isMesh) return;
+      if (v.name === 'c_1_2') return;
       v.geometry.setAttribute(
         'uvUnified',
         v.geometry.attributes.uv1 || v.geometry.attributes.uv
@@ -377,16 +388,22 @@ export class World extends EventDispatch {
         'uvUnifiedEditor',
         v.geometry.attributes.uv1 || v.geometry.attributes.uv
       );
-      if (!firstMesh) {
-        firstMesh = v;
-      }
+      // if (!firstMesh) {
+      //   firstMesh = v;
+      // }
+      this.textureModel(
+        v,
+        this.resource[type].fabricEditor.texture,
+        null,
+        'MultiplyMixDiffuse'
+      );
     });
-    this.textureModel(
-      firstMesh,
-      this.resource[type].fabricEditor.texture,
-      null,
-      'MultiplyMixDiffuse'
-    );
+    // this.textureModel(
+    //   firstMesh,
+    //   this.resource[type].fabricEditor.texture,
+    //   null,
+    //   'MultiplyMixDiffuse'
+    // );
   }
 
   /**
@@ -398,6 +415,9 @@ export class World extends EventDispatch {
    */
   textureModel(mesh, unifiedTexture, editorTexture, type) {
     const material = mesh.material;
+    if (material.map) {
+      // material.map.colorSpace = THREE.LinearSRGBColorSpace
+    }
     material.customProgramCacheKey = function () {
       return this.name;
     };

@@ -1,0 +1,269 @@
+{
+  "id": 1001,
+  "name": "Windy City KB1-JY201 - 女款",
+  "genderType": "girl",
+  "sportType": "basketball",
+  "clothType": "jersey",
+  "description": "-",
+  "pictures": ["/design_1001/female-regular-tshirt-B.png"],
+  "isComb": true,
+  "relativeId": 0,
+  "price": 65.6,
+  "priceList": [["1-2", 65.6], ["2-7", 59.4], ["7", 54.4]],
+  "discountId": 0,
+  
+  "scene": {
+    "backgroundColor": "#5b5b5b",
+    "cameraPosition": {
+      "x": -0.009666748088079795,
+      "y": 0.1459023549040876,
+      "z": 0.6137803763666974
+    },
+    "model": [{
+      "type": "jersey",
+      "url": "/images/clothes/design_1001/femal-regular-tshirt-v1.glb",
+      "position": {
+        "x": 0,
+        "y": -1.2,
+        "z": 0
+      },
+      "texture": {
+        "main": "/images/clothes/design_1001/design.svg",
+        "edit": "/texture/style/editText.svg"
+      }
+    }],
+    "lights": {
+        "metadata": {
+            "version": 4.6,
+            "type": "Object",
+            "generator": "Object3D.toJSON"
+        },
+        "object": {
+            "uuid": "3574BE0D-18B2-4E59-BCE5-ED8A1BD4AEDD",
+            "type": "Scene",
+            "name": "legacy scene",
+            "layers": 1,
+            "matrix": [
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "up": [
+                0,
+                1,
+                0
+            ],
+            "children": [
+                {
+                    "uuid": "06bb67b9-1c33-49c8-8e4e-bf7626028cb9",
+                    "type": "DirectionalLight",
+                    "name": "DirectionalLight",
+                    "layers": 1,
+                    "matrix": [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        -0.13827652290389414,
+                        -0.05321089842427418,
+                        -7.503837651879806,
+                        1
+                    ],
+                    "up": [
+                        0,
+                        1,
+                        0
+                    ],
+                    "color": 16777215,
+                    "intensity": 1.5,
+                    "shadow": {
+                        "camera": {
+                            "uuid": "858074a9-28a7-4b1d-ae00-fb4b0420ec34",
+                            "type": "OrthographicCamera",
+                            "layers": 1,
+                            "up": [
+                                0,
+                                1,
+                                0
+                            ],
+                            "zoom": 1,
+                            "left": -5,
+                            "right": 5,
+                            "top": 5,
+                            "bottom": -5,
+                            "near": 0.5,
+                            "far": 500
+                        }
+                    },
+                    "target": "23a05543-f11c-45d7-b73b-c17b35a798ff"
+                },
+                {
+                    "uuid": "b4375e3c-3b68-434b-b7bb-25bbbd6ddab2",
+                    "type": "DirectionalLight",
+                    "name": "DirectionalLight",
+                    "layers": 1,
+                    "matrix": [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        -5.089565049230812,
+                        0.05305495054964393,
+                        0.06900611890732222,
+                        1
+                    ],
+                    "up": [
+                        0,
+                        1,
+                        0
+                    ],
+                    "color": 16777215,
+                    "intensity": 2,
+                    "shadow": {
+                        "camera": {
+                            "uuid": "0db454f8-f4e2-41f6-badd-9ff4c31d86db",
+                            "type": "OrthographicCamera",
+                            "layers": 1,
+                            "up": [
+                                0,
+                                1,
+                                0
+                            ],
+                            "zoom": 1,
+                            "left": -5,
+                            "right": 5,
+                            "top": 5,
+                            "bottom": -5,
+                            "near": 0.5,
+                            "far": 500
+                        }
+                    },
+                    "target": "14dab078-9201-46ce-bc66-4b34a0876b36"
+                },
+                {
+                    "uuid": "33a92c2d-5adb-418d-be66-36932cf8f1a8",
+                    "type": "DirectionalLight",
+                    "name": "DirectionalLight",
+                    "layers": 1,
+                    "matrix": [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        2.025453317206875,
+                        1.8817621756508653,
+                        1.9120918072820015,
+                        1
+                    ],
+                    "up": [
+                        0,
+                        1,
+                        0
+                    ],
+                    "color": 16777215,
+                    "intensity": 2,
+                    "shadow": {
+                        "camera": {
+                            "uuid": "4004707e-ed95-41b5-a4fd-c010e3f7195d",
+                            "type": "OrthographicCamera",
+                            "layers": 1,
+                            "up": [
+                                0,
+                                1,
+                                0
+                            ],
+                            "zoom": 1,
+                            "left": -5,
+                            "right": 5,
+                            "top": 5,
+                            "bottom": -5,
+                            "near": 0.5,
+                            "far": 500
+                        }
+                    },
+                    "target": "cfb9162a-cf34-4f4b-8f94-8e19de459edd"
+                },
+                {
+                    "uuid": "7fed6711-42d2-46b4-9897-ea2e737b2134",
+                    "type": "AmbientLight",
+                    "layers": 1,
+                    "matrix": [
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1
+                    ],
+                    "up": [
+                        0,
+                        1,
+                        0
+                    ],
+                    "color": 16777215,
+                    "intensity": 1
+                }
+            ],
+            "backgroundRotation": [
+                0,
+                0,
+                0,
+                "XYZ"
+            ],
+            "environmentRotation": [
+                0,
+                0,
+                0,
+                "XYZ"
+            ]
+        }
+    }
+  }
+}

@@ -127,6 +127,7 @@ export const DefaultTextItem = {
 };
 
 export const CareLabel = {
+    id: 'CareLabel-0',
     "fontSize": 8,
     "fontWeight": 500,
     "fontFamily": "三极简体",
@@ -265,6 +266,12 @@ export const FontTypeList = [
     img: '/fonts/image/komikazoom.png',
   },
   {
+    type: 'Hardsign',
+    url: '/fonts/HardsignLayered-eZ1MB.ttf',
+    base64: '/fonts/css/Hardsign.css',
+    img: '/fonts/image/Hardsign.png',
+  },
+  {
     type: 'Marguerite',
     url: '',
     base64: '/fonts/css/Marguerite.css',
@@ -279,16 +286,18 @@ export const FontTypeList = [
   {
     type: 'High Trash',
     url: '/fonts/HighTrash-R92KV.otf',
-    base64: '/fonts/HighTrash-R92KV.css',
+    base64: '/fonts/HighTrash.css',
     img: '/fonts/image/HighTrash.png',
   },
   {
     type: 'AirAmerica',
+    base64: '/fonts/airAmerica.css',
     url: '/fonts/AirAmericanaBoldItalic-3ln18.ttf',
     img: '/fonts/image/AirAmerica.png',
   },
   {
     type: 'summber-bike',
+    base64: '/fonts/summerbike.css',
     url: '/fonts/SummerBike-Wpdm4.otf',
     img: '/fonts/image/summber-bike.png',
   },

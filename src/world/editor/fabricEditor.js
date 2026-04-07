@@ -48,12 +48,12 @@ class FabricEditor {
     texts = texts.concat(
       objects.filter((v) => v.type === 'customtext').map((v) => v.textElement)
     );
-    const set = new Set(texts);
+    const set = new Set(texts.map((v) => v.fontFamily));
     texts = Array.from(set);
 
     let styleTag = '';
     for (const text of texts) {
-      const base64 = await _fontManager.getFontBase64(text.fontFamily);
+      const base64 = await _fontManager.getFontBase64(text);
       if (base64) {
         styleTag += `
           ${base64} \n
@@ -71,7 +71,6 @@ class FabricEditor {
       return svgData;
     }
     const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -554,7 +553,7 @@ class FabricEditor {
       const { originX, originY } = logo;
       const { width, height, left, top } = logo.getBoundingRect();
       this.addLogo(BrandLogo, {
-        id: 'logo-brand-front',
+        id: 'logoFront-0',
         left,
         top,
         scaleX: 0.165,
@@ -564,7 +563,7 @@ class FabricEditor {
         selectable: false,
       });
       this.addLogo(BrandLogo, {
-        id: 'logo-brand-back',
+        id: 'logoBack-1',
         left: left + width,
         top: top + height,
         scaleX: 0.165,
